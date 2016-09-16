@@ -85,27 +85,31 @@ public class QryParser {
     //  #near/n and #window/n.
 
     //  STUDENT HW1 AND HW2 CODE HERE
-    
+
     //  Create the query operator.
 
     switch (operatorNameLowerCase) {
-      case "#or":
-	operator = new QrySopOr ();
-	break;
+    case "#or":
+          operator = new QrySopOr ();
+          break;
 
-      case "#syn":
-	operator = new QryIopSyn ();
-	break;
+    case "#syn":
+        operator = new QryIopSyn ();
+        break;
 
-      default:
-	syntaxError ("Unknown query operator " + operatorName);
+    case "#and":
+        operator = new QrySopAnd ();
+        break;
+
+    default:
+        syntaxError ("Unknown query operator " + operatorName);
     }
 
     operator.setDisplayName (operatorName);
 
     return operator;
   }
-  
+
   /**
    *  Create one or more terms from a token.  The token may contain
    *  dashes or other punctuation b(e.g., near-death) and/or a field
@@ -145,11 +149,11 @@ public class QryParser {
 
     String t[] = tokenizeString(term);
     Qry terms[] = new Qry[t.length];
-    
+
     for (int j = 0; j < t.length; j++) {
       terms[j] = new QryIopTerm(t [j], field);
     }
-    
+
     return terms;
   }
 
@@ -184,7 +188,7 @@ public class QryParser {
 	depth ++;
       } else if (s.charAt(i) == ')') {
 	depth --;
-            
+
 	if (depth == 0) {
 	  return i;
 	}
@@ -213,7 +217,7 @@ public class QryParser {
     //  Optimization is a depth-first task, so recurse on query
     //  arguments.  This is done in reverse to simplify deleting
     //  query arguments that become null.
-    
+
     for (int i = q.args.size() - 1; i >= 0; i--) {
 
       Qry q_i_before = q.args.get(i);
@@ -283,18 +287,18 @@ public class QryParser {
     //  Start consuming queryString by removing the query operator and
     //  its terminating ')'.  queryString is always the part of the
     //  query that hasn't been processed yet.
-    
+
     queryString = substrings[1];
     queryString =
       queryString.substring (0, queryString.lastIndexOf(")")).trim();
-    
+
     //  Each pass below handles one argument to the query operator.
     //  Note: An argument can be a token that produces multiple terms
     //  (e.g., "near-death") or a subquery (e.g., "#and (a b c)").
     //  Recurse on subqueries.
 
     while (queryString.length() > 0) {
-	
+
       //  If the operator uses weighted query arguments, each pass of
       //  this loop must handle "weight arg".  Handle the weight first.
 
@@ -306,12 +310,12 @@ public class QryParser {
       PopData<String,String> p;
 
       if (queryString.charAt(0) == '#') {	// Subquery
-	  p = popSubquery (queryString);
-	  qargs = new Qry[1];
-	  qargs[0] = parseString (p.getPopped());
+          p = popSubquery (queryString);
+          qargs = new Qry[1];
+          qargs[0] = parseString (p.getPopped());
       } else {					// Term
-	  p = popTerm (queryString);
-	  qargs = createTerms (p.getPopped());
+          p = popTerm (queryString);
+          qargs = createTerms (p.getPopped());
       }
 
       queryString = p.getRemaining().trim();	// Consume the arg
@@ -320,16 +324,15 @@ public class QryParser {
 
       for (int i=0; i<qargs.length; i++) {
 
-	//  STUDENTS WILL NEED TO ADJUST THIS BLOCK TO HANDLE WEIGHTS IN HW2
-
-	queryTree.appendArg (qargs[i]);
+          //  STUDENTS WILL NEED TO ADJUST THIS BLOCK TO HANDLE WEIGHTS IN HW2
+          queryTree.appendArg (qargs[i]);
       }
     }
 
     return queryTree;
-  }  
+  }
 
-    
+
   /**
    *  Remove a subQuery from an argument string.  Return the subquery
    *  and the modified argument string.
@@ -339,20 +342,20 @@ public class QryParser {
    *  modified argString (e.g., "#and(a b)" and "c d".
    */
   static private PopData<String,String> popSubquery (String argString) {
-	
+
     int i = indexOfBalencingParen (argString);
-	  
+
     if (i < 0) {		// Query syntax error.  The parser
       i = argString.length();	// handles it.  Here, just don't fail.
     }
-    
+
     String subquery = argString.substring(0, i+1);
     argString = argString.substring(i+1);
 
     return new PopData<String,String>(subquery, argString);
   }
 
-    
+
   /**
    *  Remove a term from an argument string.  Return the term and
    *  the modified argument string.
@@ -362,7 +365,7 @@ public class QryParser {
    *  "b c d".
    */
   static private PopData<String,String> popTerm (String argString) {
-	
+
     String[] substrings = argString.split ("[ \t\n\r]+", 2);
     String token = substrings[0];
 
@@ -375,7 +378,7 @@ public class QryParser {
     return new PopData<String,String>(substrings[0], argString);
   }
 
-    
+
   /**
    *  Throw an error specialized for query parsing syntax errors.
    *  @param errorString The string "Syntax
@@ -391,7 +394,7 @@ public class QryParser {
    *  Given part of a query string, returns an array of terms with
    *  stopwords removed and the terms stemmed using the Krovetz
    *  stemmer.  Use this method to process raw query terms.
-   *  @param query String containing query. 
+   *  @param query String containing query.
    *  @return Array of query tokens
    *  @throws IOException Error accessing the Lucene index.
    */

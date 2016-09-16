@@ -23,10 +23,9 @@ public class ScoreList {
       this.score = score;
 
       try {
-	this.externalId = Idx.getExternalDocid (this.docid);
-      }
-      catch (IOException ex){
-	ex.printStackTrace();
+          this.externalId = Idx.getExternalDocid (this.docid);
+      } catch (IOException ex){
+          ex.printStackTrace();
       }
     }
   }
@@ -88,19 +87,12 @@ public class ScoreList {
 
     @Override
     public int compare(ScoreListEntry s1, ScoreListEntry s2) {
-      if (s1.score > s2.score)
-	return -1;
-      else
-	if (s1.score < s2.score)
-	  return 1;
-	else
-	  if (s1.docid > s2.docid)
-	    return 1;
-	  else
-	    if (s1.docid < s2.docid)
-	      return -1;
-	    else
-	      return 0;
+        if (s1.score > s2.score)
+            return -1;
+        if (s1.score < s2.score)
+            return 1;
+
+        return s1.externalId.compareTo(s2.externalId);
     }
   }
 
@@ -110,16 +102,17 @@ public class ScoreList {
   public void sort () {
     Collections.sort(this.scores, new ScoreListComparator());
   }
-  
+
   /**
    * Reduce the score list to the first num results to save on RAM.
-   * 
+   *
    * @param num Number of results to keep.
    */
-  public void truncate(int num) {
-    List<ScoreListEntry> truncated = new ArrayList<ScoreListEntry>(this.scores.subList(0,
-        Math.min(num, scores.size())));
-    this.scores.clear();
-    this.scores = truncated;
+    public void truncate(int num) {
+        List<ScoreListEntry> truncated = new ArrayList<ScoreListEntry>(
+            this.scores.subList(0, Math.min(num, scores.size())));
+
+        this.scores.clear();
+        this.scores = truncated;
   }
 }

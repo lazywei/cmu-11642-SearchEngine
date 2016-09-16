@@ -61,12 +61,14 @@ public class QryEval {
 
     //  Open the index and initialize the retrieval model.
 
+    System.out.println(parameters);
     Idx.open (parameters.get ("indexPath"));
     RetrievalModel model = initializeRetrievalModel (parameters);
 
     //  Perform experiments.
 
-    processQueryFile(parameters.get("queryFilePath"), model);
+    processQueryFile(parameters.get("queryFilePath"),
+                     parameters.get("trecEvalOutputPath"), model);
 
     //  Clean up.
 
@@ -161,16 +163,18 @@ public class QryEval {
    *  @param model
    *  @throws IOException Error accessing the Lucene index.
    */
-  static void processQueryFile(String queryFilePath,
-                               RetrievalModel model)
+    static void processQueryFile(String queryFilePath, String outputFilePath,
+                                 RetrievalModel model)
       throws IOException {
 
     BufferedReader input = null;
+    BufferedWriter output = null;
 
     try {
       String qLine = null;
 
       input = new BufferedReader(new FileReader(queryFilePath));
+      output = new BufferedWriter(new FileWriter(outputFilePath));
 
       //  Each pass of the loop processes one query.
 
@@ -192,16 +196,19 @@ public class QryEval {
         ScoreList r = null;
 
         r = processQuery(query, model);
+        r.sort();
+        r.truncate(100);
 
         if (r != null) {
-          printResults(qid, r);
-          System.out.println();
+            outputResults(output, qid, r);
+            System.out.println();
         }
       }
     } catch (IOException ex) {
       ex.printStackTrace();
     } finally {
       input.close();
+      output.close();
     }
   }
 
@@ -219,18 +226,18 @@ public class QryEval {
    *          A list of document ids and scores
    * @throws IOException Error accessing the Lucene index.
    */
-  static void printResults(String queryName, ScoreList result) throws IOException {
-
-    System.out.println(queryName + ":  ");
-    if (result.size() < 1) {
-      System.out.println("\tNo results.");
-    } else {
-      for (int i = 0; i < result.size(); i++) {
-        System.out.println("\t" + i + ":  " + Idx.getExternalDocid(result.getDocid(i)) + ", "
-            + result.getDocidScore(i));
-      }
+    static void outputResults(BufferedWriter output, String queryName, ScoreList result) throws IOException {
+        if (result.size() < 1) {
+            output.write(queryName + "\tQ0\tdummy\t1\t0\trunID\n");
+        } else {
+            for (int i = 0; (i < result.size()) && (i < 100); i++) {
+                output.write(queryName + "\tQ0\t" +
+                             Idx.getExternalDocid(result.getDocid(i)) + "\t"
+                             + (i+1) + "\t"   /* Rank */
+                             + result.getDocidScore(i) + "\trunID\n");
+            }
+        }
     }
-  }
 
   /**
    *  Read the specified parameter file, and confirm that the required

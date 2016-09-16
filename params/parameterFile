@@ -1,0 +1,4 @@
+indexPath=../data/index
+retrievalAlgorithm=UnrankedBoolean
+queryFilePath=queries.txt
+trecEvalOutputPath=HW1-queries-UB.teIn

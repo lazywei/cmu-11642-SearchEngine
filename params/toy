@@ -1,0 +1,4 @@
+indexPath=../toy/index
+retrievalAlgorithm=UnrankedBoolean
+queryFilePath=./queries/toy
+trecEvalOutputPath=../HW1-queries-UB-toy.teIn

@@ -74,7 +74,7 @@ public abstract class QryIop extends Qry {
            (this.invertedList.getDocid (this.docIteratorIndex) <= docid)) {
       this.docIteratorIndex ++;
     }
-           
+
     this.locIteratorIndex = 0;
   }
 
