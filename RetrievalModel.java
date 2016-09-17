@@ -10,10 +10,10 @@
  */
 public abstract class RetrievalModel {
 
-  /**
-   *  The name of the default query operator for the retrieval model.
-   *  @return The name of the default query operator.
-   */
-  public abstract String defaultQrySopName ();
+    /**
+     *  The name of the default query operator for the retrieval model.
+     *  @return The name of the default query operator.
+     */
+    public abstract String defaultQrySopName ();
 
 }

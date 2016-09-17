@@ -16,32 +16,32 @@ import java.util.*;
 
 public class PopData<PopType,RemainingType> {
 
-  private final PopType popped;
-  private final RemainingType remaining;
+    private final PopType popped;
+    private final RemainingType remaining;
 
-  /**
-   *  Constructor.
-   *  @param popped The data that was popped from the string.
-   *  @param remaining The data that remains in the string after the pop.
-   */
-  public PopData(PopType popped, RemainingType remaining) {
-    this.popped = popped;
-    this.remaining = remaining;
-  }
+    /**
+     *  Constructor.
+     *  @param popped The data that was popped from the string.
+     *  @param remaining The data that remains in the string after the pop.
+     */
+    public PopData(PopType popped, RemainingType remaining) {
+        this.popped = popped;
+        this.remaining = remaining;
+    }
 
-  /**
-   *  Get the data that was popped from the string.
-   *  @return PopType The data that was popped.
-   */
-  public PopType getPopped() {
-    return this.popped;
-  }
+    /**
+     *  Get the data that was popped from the string.
+     *  @return PopType The data that was popped.
+     */
+    public PopType getPopped() {
+        return this.popped;
+    }
 
-  /**
-   *  Get the data that remains in the string after the pop.
-   *  @return RemainingType The data that remains.
-   */
-  public RemainingType getRemaining() {
-    return this.remaining;
-  }
+    /**
+     *  Get the data that remains in the string after the pop.
+     *  @return RemainingType The data that remains.
+     */
+    public RemainingType getRemaining() {
+        return this.remaining;
+    }
 }

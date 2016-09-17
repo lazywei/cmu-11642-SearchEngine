@@ -9,8 +9,8 @@
  */
 public class RetrievalModelUnrankedBoolean extends RetrievalModel {
 
-  public String defaultQrySopName () {
-    return new String ("#or");
-  }
+    public String defaultQrySopName () {
+        return new String ("#or");
+    }
 
 }

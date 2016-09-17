@@ -9,25 +9,25 @@ import org.apache.lucene.search.similarities.TFIDFSimilarity;
 
 
 public class DocLenStoreSimilarity extends SimilarityBase {
-   
-  @Override
-  protected float score(BasicStats stats, float freq, float docLen) {
-    // TODO Auto-generated method stub
-    return 0;
-  }
 
-  @Override
-  public String toString() {
-    // TODO Auto-generated method stub
-    return null;
-  }
+    @Override
+    protected float score(BasicStats stats, float freq, float docLen) {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    @Override
+    public String toString() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
 
-  /** Encodes the document length in the same way as {@link TFIDFSimilarity}. */
-  @Override
-  public long computeNorm(FieldInvertState state) {
-    final float numTerms = state.getPosition();
-    return (long)numTerms;
-  }
-  
+    /** Encodes the document length in the same way as {@link TFIDFSimilarity}. */
+    @Override
+    public long computeNorm(FieldInvertState state) {
+        final float numTerms = state.getPosition();
+        return (long)numTerms;
+    }
+
 }
