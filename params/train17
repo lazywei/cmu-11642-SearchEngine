@@ -1,0 +1,4 @@
+indexPath=../test_index
+retrievalAlgorithm=RankedBoolean
+queryFilePath=./queries/train17
+trecEvalOutputPath=../HW1-queries-UB-train17.teIn
