@@ -67,7 +67,7 @@ public class QrySopScore extends QrySop {
             return 0.0;
         } else {
             Qry q = this.args.get (0);
-            return ((QryIop) q).getTf ();
+            return ((QryIop) q).getMatchTf();
         }
     }
 

@@ -156,7 +156,7 @@ public abstract class QryIop extends Qry {
      *  object's initialize method is called.
      *  @return The term frequency (tf).
      */
-    public int getTf() {
+    public int getMatchTf() {
         return this.invertedList.getTf(this.docIteratorIndex);
     }
 
