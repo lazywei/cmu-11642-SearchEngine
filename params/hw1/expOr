@@ -1,0 +1,4 @@
+indexPath=../test_index
+retrievalAlgorithm=UnrankedBoolean
+queryFilePath=./queries/expOr
+trecEvalOutputPath=../HW1-queries-RB-expOr.teIn
