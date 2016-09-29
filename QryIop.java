@@ -151,13 +151,24 @@ public abstract class QryIop extends Qry {
     }
 
     /**
-     *  Get the term frequency (tf) associated with this query
-     *  operator.  It is an error to call this method before the
-     *  object's initialize method is called.
+     *  Get the term frequency (tf) associated with this query operator. It is
+     *  an error to call this method before the object's initialize method is
+     *  called. Also, this assumes that there is at least one match.
      *  @return The term frequency (tf).
      */
     public int getMatchTf() {
         return this.invertedList.getTf(this.docIteratorIndex);
+    }
+
+    /**
+     *  Get the Doc Len associated with this query operator. It is an error to
+     *  call this method before the object's initialize method is called. Also,
+     *  this assumes that there is at least one match.
+     *  @return The matched document length (doclen).
+     */
+    public int getMatchDocLen() {
+        return 1;
+        // return this.invertedList.getTf(this.docIteratorIndex);
     }
 
     /**

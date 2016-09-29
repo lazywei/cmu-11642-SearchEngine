@@ -92,6 +92,11 @@ public class QryEval {
             model = new RetrievalModelUnrankedBoolean();
         } else if (modelString.equals("rankedboolean")) {
             model = new RetrievalModelRankedBoolean();
+        } else if (modelString.equals("bm25")) {
+            model = new RetrievalModelBM25(
+                Double.parseDouble(parameters.get("BM25:k_1")),
+                Double.parseDouble(parameters.get("BM25:b")),
+                Double.parseDouble(parameters.get("BM25:k_3")));
         } else {
             throw new IllegalArgumentException
                 ("Unknown retrieval model " + parameters.get("retrievalAlgorithm"));

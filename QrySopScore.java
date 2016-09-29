@@ -36,6 +36,9 @@ public class QrySopScore extends QrySop {
             return this.getScoreUnrankedBoolean (r);
         } else if (r instanceof RetrievalModelRankedBoolean) {
             return this.getScoreRankedBoolean (r);
+
+        } else if (r instanceof RetrievalModelBM25) {
+            return this.getScoreBM25(r);
         } else {
             throw new IllegalArgumentException
                 (r.getClass().getName() + " doesn't support the SCORE operator.");
@@ -69,6 +72,40 @@ public class QrySopScore extends QrySop {
             Qry q = this.args.get (0);
             return ((QryIop) q).getMatchTf();
         }
+    }
+
+    /**
+     *  getScore for the Okapi BM25 model.
+     *  @param r The retrieval model that determines how scores are calculated.
+     *  @return The document score.
+     *  @throws IOException Error accessing the Lucene index
+     */
+    public double getScoreBM25 (RetrievalModel r) throws IOException {
+        double score = 0;
+        RetrievalModelBM25 rBM25 = (RetrievalModelBM25) r;
+
+        QryIop qIop = (QryIop)(this.args.get(0));
+        int docid = qIop.docIteratorGetMatch();
+        String fieldName = qIop.getField();
+
+        double k1 = rBM25.getK1();
+        double b = rBM25.getB();
+
+        int df = qIop.getDf();
+        int tf = qIop.getMatchTf();
+
+        long nDocs = rBM25.getNumDocs(fieldName);
+        long doclen = rBM25.getDocLen(fieldName, docid);
+        double avg_doclen = rBM25.getAvgDocLen(fieldName);
+
+        double logTerm = Math.log((nDocs - df + 0.5) / (df + 0.5));
+
+        double tfTerm = tf / (tf + k1 * ((1 - b) + b * doclen / avg_doclen));
+        double queryWeight = 1;
+
+        score = logTerm * tfTerm * queryWeight;
+
+        return score;
     }
 
     /**

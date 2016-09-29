@@ -95,26 +95,30 @@ public class QryParser {
 
         switch (operatorNameLowerCase) {
         case "#or":
-            operator = new QrySopOr ();
+            operator = new QrySopOr();
             break;
 
         case "#and":
-            operator = new QrySopAnd ();
+            operator = new QrySopAnd();
             break;
 
         case "#syn":
-            operator = new QryIopSyn ();
+            operator = new QryIopSyn();
             break;
 
         case "#near":
-            operator = new QryIopNear (operatorDistance);
+            operator = new QryIopNear(operatorDistance);
+            break;
+
+        case "#sum":
+            operator = new QrySopBM25Sum();
             break;
 
         default:
-            syntaxError ("Unknown query operator " + operatorName);
+            syntaxError("Unknown query operator " + operatorName);
         }
 
-        operator.setDisplayName (operatorName);
+        operator.setDisplayName(operatorName);
 
         return operator;
     }
