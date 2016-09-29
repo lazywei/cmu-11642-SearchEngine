@@ -21,7 +21,7 @@ public class QrySopBM25Sum extends QrySop {
      *  @return True if the query matches, otherwise false.
      */
     public boolean docIteratorHasMatch (RetrievalModel r) {
-        return this.docIteratorHasMatchAll (r);
+        return this.docIteratorHasMatchMin(r);
     }
 
     /**
@@ -30,7 +30,7 @@ public class QrySopBM25Sum extends QrySop {
      *  @return The document score.
      *  @throws IOException Error accessing the Lucene index
      */
-    public double getScore (RetrievalModel r) throws IOException {
+    public double getScore(RetrievalModel r) throws IOException {
 
         if (r instanceof RetrievalModelBM25) {
             return this.getScoreBM25 (r);
@@ -51,9 +51,25 @@ public class QrySopBM25Sum extends QrySop {
             return 0.0;
         } else {
             double score = 0;
+            int docid = this.docIteratorGetMatch();
 
+            /**
+             * We are using docIteratorHasMatchMin, which means we might
+             * have such situation:
+             * q1: (doc1, doc3, doc5)
+             * q2: (doc1, doc2, doc4)
+             * q3: (doc2, doc3, doc6)
+             * since we are using document-at-a-time, the first match would
+             * be (q1->doc1), (q2->doc1), (q3->doc2). But we only want to
+             * calculate the scores for q1 and q2 with respect to doc1, so we
+             * should check if the query's matched document is the one we
+             * actually want to calculate with.
+             */
             for (Qry q_i: this.args) {
-                score += ((QrySop) q_i).getScore(r);
+                if (q_i.docIteratorHasMatchCache() &&
+                    q_i.docIteratorGetMatch() == docid) {
+                    score += ((QrySop) q_i).getScore(r);
+                }
             }
 
             return score;

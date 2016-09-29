@@ -1,4 +1,7 @@
 indexPath=INPUT_DIR/toy/index
-retrievalAlgorithm=UnrankedBoolean
 queryFilePath=TEST_DIR/toy
 trecEvalOutputPath=OUTPUT_DIR/toy.teIn
+retrievalAlgorithm=BM25
+BM25:k_1=1.2
+BM25:b=0.75
+BM25:k_3=0.0
