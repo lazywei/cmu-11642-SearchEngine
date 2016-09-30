@@ -86,7 +86,7 @@ public class QryEval {
         throws IOException {
 
         RetrievalModel model = null;
-        String modelString = parameters.get ("retrievalAlgorithm").toLowerCase();
+        String modelString = parameters.get("retrievalAlgorithm").toLowerCase();
 
         if (modelString.equals("unrankedboolean")) {
             model = new RetrievalModelUnrankedBoolean();
@@ -97,6 +97,10 @@ public class QryEval {
                 Double.parseDouble(parameters.get("BM25:k_1")),
                 Double.parseDouble(parameters.get("BM25:b")),
                 Double.parseDouble(parameters.get("BM25:k_3")));
+        } else if (modelString.equals("indri")) {
+            model = new RetrievalModelIndri(
+                Integer.parseInt(parameters.get("Indri:mu")),
+                Double.parseDouble(parameters.get("Indri:lambda")));
         } else {
             throw new IllegalArgumentException
                 ("Unknown retrieval model " + parameters.get("retrievalAlgorithm"));

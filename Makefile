@@ -5,10 +5,23 @@ REPORT_FILE=./reports/$(HW_N)/cchang3-$(HW_N)-Report.pdf
 HANDIN_FILE=handin_$(HW_N).zip
 # No need to modify these flags
 LUCENE_JARS=../lucene-4.3.0/*
-CLASS_FLAG=-cp ".:$(LUCENE_JARS)"
+JUNIT_JARS=../junit/*
+CLASS_FLAG=-cp ".:./tests:$(LUCENE_JARS):$(JUNIT_JARS)"
 
-all:
-	javac $(CLASS_FLAG) -g *.java
+## General compile tasks
+
+classes = $(patsubst %.java,%.class,$(wildcard *.java))
+test_classes = $(patsubst %.java,%.class,$(wildcard ./tests/*.java))
+
+all: $(classes)
+
+test: all $(test_classes)
+	java $(CLASS_FLAG) org.junit.runner.JUnitCore TestSuite
+
+%.class: %.java
+	javac $(CLASS_FLAG) -g $<
+
+## Runner tasks
 
 run_toy:
 	java $(CLASS_FLAG) QryEval params/toy
@@ -22,7 +35,7 @@ run_exp:
 	java $(CLASS_FLAG) QryEval params/expOr
 
 clean:
-	rm *.class
+	rm -f *.class ./tests/*.class
 
 handin:
 	mkdir -p QryEval;
