@@ -13,8 +13,8 @@ public class RetrievalModelBM25 extends RetrievalModel {
     private double b, k1, k3;
 
     public RetrievalModelBM25(double k1, double b, double k3) {
-        this.b = b;
         this.k1 = k1;
+        this.b = b;
         this.k3 = k3;
     }
 
@@ -47,6 +47,28 @@ public class RetrievalModelBM25 extends RetrievalModel {
 
     public long getDocLen(String fieldName, int docid) throws IOException  {
         return Idx.getFieldLength(fieldName, docid);
+    }
+
+    public double calculateScore(QryIop qIop) throws IOException {
+        String fieldName = qIop.getField();
+        int docid = qIop.docIteratorGetMatch();
+
+        double k1 = this.getK1();
+        double b = this.getB();
+
+        int df = qIop.getDf();
+        int tf = qIop.getMatchTf();
+
+        long nDocs = this.getNumDocs(fieldName);
+        long doclen = this.getDocLen(fieldName, docid);
+        double avgDoclen = this.getAvgDocLen(fieldName);
+
+        double logTerm = Math.max(0, Math.log((nDocs - df + 0.5) / (df + 0.5)));
+
+        double tfTerm = tf / (tf + k1 * ((1 - b) + b * doclen / avgDoclen));
+        double queryWeight = 1;
+
+        return logTerm * tfTerm * queryWeight;
     }
 
 }

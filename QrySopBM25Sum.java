@@ -60,7 +60,7 @@ public class QrySopBM25Sum extends QrySop {
              * q2: (doc1, doc2, doc4)
              * q3: (doc2, doc3, doc6)
              * since we are using document-at-a-time, the first match would
-             * be (q1->doc1), (q2->doc1), (q3->doc2). But we only want to
+             * be (q1: doc1), (q2: doc1), (q3: doc2). But we only want to
              * calculate the scores for q1 and q2 with respect to doc1, so we
              * should check if the query's matched document is the one we
              * actually want to calculate with.

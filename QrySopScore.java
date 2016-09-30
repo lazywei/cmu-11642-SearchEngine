@@ -87,27 +87,9 @@ public class QrySopScore extends QrySop {
             return 0.0;
         } else {
             RetrievalModelBM25 rBM25 = (RetrievalModelBM25) r;
-
             QryIop qIop = (QryIop)(this.args.get(0));
-            String fieldName = qIop.getField();
-            int docid = qIop.docIteratorGetMatch();
 
-            double k1 = rBM25.getK1();
-            double b = rBM25.getB();
-
-            int df = qIop.getDf();
-            int tf = qIop.getMatchTf();
-
-            long nDocs = rBM25.getNumDocs(fieldName);
-            long doclen = rBM25.getDocLen(fieldName, docid);
-            double avgDoclen = rBM25.getAvgDocLen(fieldName);
-
-            double logTerm = Math.log((nDocs - df + 0.5) / (df + 0.5));
-
-            double tfTerm = tf / (tf + k1 * ((1 - b) + b * doclen / avgDoclen));
-            double queryWeight = 1;
-
-            return logTerm * tfTerm * queryWeight;
+            return rBM25.calculateScore(qIop);
         }
     }
 
