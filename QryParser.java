@@ -91,6 +91,8 @@ public class QryParser {
 
         //  STUDENT HW1 AND HW2 CODE HERE
 
+        ArrayList<Double> indriWeights = new ArrayList<Double>();
+
         //  Create the query operator.
 
         switch (operatorNameLowerCase) {
@@ -112,6 +114,14 @@ public class QryParser {
 
         case "#sum":
             operator = new QrySopBM25Sum();
+            break;
+
+        case "#wsum":
+            operator = new QrySopIndriWsum();
+            break;
+
+        case "#wand":
+            operator = new QrySopIndriWand();
             break;
 
         default:
@@ -321,6 +331,16 @@ public class QryParser {
 
             Qry[] qargs = null;
             PopData<String,String> p;
+            Double weight = 1.0;
+
+            // If this is a weighted query, we pop the weight first, and then we
+            // process the remaining query string as usual.
+            if (queryTree instanceof QryWeightable) {
+
+                p = popTerm (queryString);
+                weight = Double.parseDouble(p.getPopped());
+                queryString = p.getRemaining().trim();
+            }
 
             if (queryString.charAt(0) == '#') {	// Subquery
                 p = popSubquery (queryString);
@@ -338,7 +358,11 @@ public class QryParser {
             for (int i=0; i<qargs.length; i++) {
 
                 //  STUDENTS WILL NEED TO ADJUST THIS BLOCK TO HANDLE WEIGHTS IN HW2
-                queryTree.appendArg (qargs[i]);
+                queryTree.appendArg(qargs[i]);
+
+                if (queryTree instanceof QryWeightable) {
+                    ((QryWeightable) queryTree).appendWeight(weight);
+                }
             }
         }
 

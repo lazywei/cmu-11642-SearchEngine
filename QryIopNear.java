@@ -102,7 +102,6 @@ public class QryIopNear extends QryIop {
 
     private boolean validDistance(int loc1, int loc2) {
         int diff = loc2 - loc1;
-        // System.out.format("loc1=%d, loc2=%d, diff=%d\n", loc1, loc2, diff);
         return (diff > 0) && (diff <= this.opDistance);
     }
 
@@ -120,7 +119,6 @@ public class QryIopNear extends QryIop {
                 idxOfMinLoc = i;
             }
         }
-        // System.out.format("idxOfMinLoc=%d\n", idxOfMinLoc);
         return this.args.get(idxOfMinLoc);
     }
 
@@ -129,7 +127,6 @@ public class QryIopNear extends QryIop {
      *  greater than q2 or not.
      */
     private boolean locIsGeqThan(Qry q1, Qry q2) {
-        // System.out.format("q1.loc=%d, q2.loc=%d\n", ((QryIop) q1).locIteratorGetMatch(), ((QryIop) q2).locIteratorGetMatch());
         return (((QryIop) q1).locIteratorGetMatch()
                 >= ((QryIop) q2).locIteratorGetMatch());
     }

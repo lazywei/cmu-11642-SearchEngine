@@ -103,4 +103,19 @@ public class TestRetrievalModelIndri {
         assertEquals(true, this.q.docIteratorHasMatch(r));
         assertEquals(0, this.q.docIteratorGetMatch());
     }
+
+    // @Test
+    // public void testIndriAndWithNear() throws IOException {
+    //     // check the strategy is matching the min docid
+    //     Qry q = QryParser.getQuery("#and(toy1.url #NEAR/2(health benefits))");
+    //     q.initialize(this.r);
+    //     q.docIteratorHasMatch(this.r);
+
+    //     QrySop qSop = (QrySop) q;
+    //     qSop.getScore(this.r);
+
+    //     q.docIteratorAdvanceTo(1);
+    //     q.docIteratorHasMatch(this.r);
+    //     qSop.getScore(this.r);
+    // }
 }

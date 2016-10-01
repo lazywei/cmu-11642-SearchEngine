@@ -6,7 +6,8 @@ import org.junit.Test;
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
         TestRetrievalModelIndri.class,
-        TestRetrievalModelBM25.class
+        TestRetrievalModelBM25.class,
+        TestQryParser.class
 })
 
 public class TestSuite {

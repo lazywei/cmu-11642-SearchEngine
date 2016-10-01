@@ -137,6 +137,7 @@ public abstract class Qry {
             }
         }
 
+
         //  Check whether it is necessary to insert an implied SCORE
         //  operator between a QrySop operator and a QryIop argument.
 
