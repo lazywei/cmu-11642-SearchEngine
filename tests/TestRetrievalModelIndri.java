@@ -28,8 +28,30 @@ public class TestRetrievalModelIndri {
     }
 
     @Test
-    public void testDefaultScore() {
-        assertEquals(1.0, ((RetrievalModelIndri) this.r).getDefaultScore(), 1e-6);
+    public void testScore() throws IOException {
+        QryIop q = new QryIopTerm("pie");
+        q.initialize(this.r);
+
+        double len_d = 15;
+        double len_c = 49;
+        double ctf = 6;
+        double tf = 2;
+        double lambda = 0.4;
+        double mu = 2500;
+
+        assertEquals(
+            (1 - lambda)*((0 + mu * (ctf) / (len_c)) / (len_d + mu) )
+            + lambda * (ctf / len_c),
+            ((RetrievalModelIndri) this.r).getDefaultScore(q),
+            1e-6);
+
+        if (q.docIteratorHasMatch(this.r)) {
+            assertEquals(
+                (1 - lambda)*((tf + mu * (ctf) / (len_c)) / (len_d + mu) )
+                + lambda * (ctf / len_c),
+                ((RetrievalModelIndri) this.r).getScore(q),
+                1e-6);
+        }
     }
 
     @Test

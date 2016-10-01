@@ -31,8 +31,19 @@ public class RetrievalModelIndri extends RetrievalModel {
         return this.lambda;
     }
 
-    public double getDefaultScore() {
-        return 1.0;
+    public double getScore(QryIop qIop) throws IOException {
+        String fieldName = qIop.getField();
+        int docid = qIop.docIteratorGetMatch();
+
+        return this.queryLikelihood(qIop.getMatchTf(), qIop.getCtf(),
+                                    fieldName, docid);
+    }
+
+    public double getDefaultScore(QryIop qIop) throws IOException {
+        String fieldName = qIop.getField();
+        int docid = qIop.docIteratorGetMatch();
+
+        return this.queryLikelihood(0, qIop.getCtf(), fieldName, docid);
     }
 
     // combine scores for AND
@@ -47,30 +58,14 @@ public class RetrievalModelIndri extends RetrievalModel {
         return result;
     }
 
-    private long getFieldLength(String fieldName) throws IOException  {
-        return Idx.getSumOfFieldLengths(fieldName);
+    private double queryLikelihood(int tf, int ctf,
+                                   String fieldName, int docid) throws IOException {
+        double len_d = (double)(Idx.getFieldLength(fieldName, docid));
+        double len_c = (double)(Idx.getSumOfFieldLengths(fieldName));
+
+        double pMLE = (double)ctf / len_c;
+        double smoothed = ((double)tf + this.getMu() * pMLE) / (len_d + this.getMu());
+
+        return (1 - this.getLambda()) * smoothed + this.getLambda()*pMLE;
     }
-
-    ///////////////////////////////////
-
-    public long getNumDocs(String fieldName) throws IOException  {
-        return Idx.getDocCount(fieldName);
-    }
-
-    public double getAvgDocLen(String fieldName) throws IOException  {
-        long totalLen = Idx.getSumOfFieldLengths(fieldName);
-        long nDocs = this.getNumDocs(fieldName);
-
-        return ((double)totalLen / (double)nDocs);
-    }
-
-    public long getDocLen(String fieldName, int docid) throws IOException  {
-        return Idx.getFieldLength(fieldName, docid);
-    }
-
-    public double calculateScore(QryIop qIop) throws IOException {
-        return 1;
-    }
-
-
 }

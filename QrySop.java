@@ -29,8 +29,11 @@ public abstract class QrySop extends Qry {
      *  @return The document score.
      *  @throws IOException Error accessing the Lucene index
      */
-    public abstract double getDefaultScore (RetrievalModel r)
-        throws IOException;
+    public double getDefaultScore (RetrievalModel r) throws IOException {
+        throw new IllegalArgumentException
+            (r.getClass().getName()
+             + " doesn't support the QrySop operator for getDefaultScore.");
+    }
 
     /**
      *  Initialize the query operator (and its arguments), including any
