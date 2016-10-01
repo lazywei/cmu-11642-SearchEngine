@@ -39,9 +39,8 @@ public class RetrievalModelIndri extends RetrievalModel {
                                     fieldName, docid);
     }
 
-    public double getDefaultScore(QryIop qIop) throws IOException {
+    public double getDefaultScore(QryIop qIop, int docid) throws IOException {
         String fieldName = qIop.getField();
-        int docid = qIop.docIteratorGetMatch();
 
         return this.queryLikelihood(0, qIop.getCtf(), fieldName, docid);
     }

@@ -24,15 +24,14 @@ public abstract class QrySop extends Qry {
         throws IOException;
 
     /**
-     *  Get a default score for the document that docIteratorHasMatch matched.
+     *  Get a default indri score for the document=docid.
      *  @param r The retrieval model that determines how scores are calculated.
      *  @return The document score.
      *  @throws IOException Error accessing the Lucene index
      */
-    public double getDefaultScore (RetrievalModel r) throws IOException {
+    public double getDefaultIndriScore(RetrievalModel r, int docid) throws IOException {
         throw new IllegalArgumentException
-            (r.getClass().getName()
-             + " doesn't support the QrySop operator for getDefaultScore.");
+            ("QrySopXXX's getDefaultIndriScore is not implemented.");
     }
 
     /**

@@ -53,23 +53,6 @@ public class QrySopAnd extends QrySop {
     }
 
     /**
-     *  Get the default score for the document that docIteratorHasMatch matched.
-     *  This is particularly designed for Indri model
-     *  @param r The retrieval model that determines how scores are calculated.
-     *  @return The document score.
-     *  @throws IOException Error accessing the Lucene index
-     */
-    public double getDefaultScore (RetrievalModel r) throws IOException {
-
-        if (r instanceof RetrievalModelIndri) {
-            return this.getDefaultScoreIndri(r);
-        } else {
-            throw new IllegalArgumentException
-                (r.getClass().getName() + " doesn't support the AND operator for getDefaultScore.");
-        }
-    }
-
-    /**
      *  getScore for the UnrankedBoolean retrieval model.
      *  @param r The retrieval model that determines how scores are calculated.
      *  @return The document score.
@@ -111,19 +94,19 @@ public class QrySopAnd extends QrySop {
      */
     private double getScoreIndri(RetrievalModel r) throws IOException {
         if (! this.docIteratorHasMatchCache()) {
-            return this.getDefaultScoreIndri(r);
+            // this should never be called...
+            return 0.0;
         } else {
             RetrievalModelIndri indri = (RetrievalModelIndri) r;
             ArrayList<Double> scores = new ArrayList<Double>();
             int docid = this.docIteratorGetMatch();
-
 
             for (Qry q_i: this.args) {
                 if (q_i.docIteratorHasMatchCache() &&
                     q_i.docIteratorGetMatch() == docid) {
                     scores.add(((QrySop) q_i).getScore(r));
                 } else {
-                    scores.add(((QrySop) q_i).getDefaultScore(r));
+                    scores.add(((QrySop) q_i).getDefaultIndriScore(r, docid));
                 }
             }
 
@@ -137,12 +120,13 @@ public class QrySopAnd extends QrySop {
      *  @return The document score.
      *  @throws IOException Error accessing the Lucene index
      */
-    private double getDefaultScoreIndri(RetrievalModel r) throws IOException {
+    public double getDefaultIndriScore(RetrievalModel r, int docid)
+        throws IOException {
         RetrievalModelIndri indri = (RetrievalModelIndri) r;
         ArrayList<Double> scores = new ArrayList<Double>();
 
         for (Qry q_i: this.args) {
-            scores.add(((QrySop) q_i).getDefaultScore(r));
+            scores.add(((QrySop) q_i).getDefaultIndriScore(r, docid));
         }
 
         return indri.andCombiner(scores);

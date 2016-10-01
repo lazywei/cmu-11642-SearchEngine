@@ -51,23 +51,6 @@ public class QrySopScore extends QrySop {
     }
 
     /**
-     *  Get the default score for the document that docIteratorHasMatch matched.
-     *  This is particularly designed for Indri model
-     *  @param r The retrieval model that determines how scores are calculated.
-     *  @return The document score.
-     *  @throws IOException Error accessing the Lucene index
-     */
-    public double getDefaultScore (RetrievalModel r) throws IOException {
-
-        if (r instanceof RetrievalModelIndri) {
-            return this.getDefaultScoreIndri(r);
-        } else {
-            throw new IllegalArgumentException
-                (r.getClass().getName() + " doesn't support the SCORE operator for getDefaultScore.");
-        }
-    }
-
-    /**
      *  getScore for the Unranked retrieval model.
      *  @param r The retrieval model that determines how scores are calculated.
      *  @return The document score.
@@ -119,16 +102,15 @@ public class QrySopScore extends QrySop {
      *  @return The document score.
      *  @throws IOException Error accessing the Lucene index
      */
-    public double getScoreIndri(RetrievalModel r) throws IOException {
+    private double getScoreIndri(RetrievalModel r) throws IOException {
         if (! this.docIteratorHasMatchCache()) {
             // this should never be invoked ...
-            return this.getDefaultScoreIndri(r);
+            return 0.0;
         } else {
-            // RetrievalModelIndri rIndri = (RetrievalModelIndri) r;
-            // QryIop qIop = (QryIop)(this.args.get(0));
+            RetrievalModelIndri rIndri = (RetrievalModelIndri) r;
+            QryIop qIop = (QryIop)(this.args.get(0));
 
-            // return iIndri.calculateScore(qIop);
-            return 2.0;
+            return rIndri.getScore(qIop);
         }
     }
 
@@ -138,8 +120,12 @@ public class QrySopScore extends QrySop {
      *  @return The document score.
      *  @throws IOException Error accessing the Lucene index
      */
-    private double getDefaultScoreIndri(RetrievalModel r) throws IOException {
-        return 100.0;
+    public double getDefaultIndriScore(RetrievalModel r, int docid)
+        throws IOException {
+        RetrievalModelIndri rIndri = (RetrievalModelIndri) r;
+        QryIop qIop = (QryIop)(this.args.get(0));
+
+        return rIndri.getDefaultScore(qIop, docid);
     }
 
     /**

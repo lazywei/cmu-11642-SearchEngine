@@ -42,7 +42,7 @@ public class TestRetrievalModelIndri {
         assertEquals(
             (1 - lambda)*((0 + mu * (ctf) / (len_c)) / (len_d + mu) )
             + lambda * (ctf / len_c),
-            ((RetrievalModelIndri) this.r).getDefaultScore(q),
+            ((RetrievalModelIndri) this.r).getDefaultScore(q, 0),
             1e-6);
 
         if (q.docIteratorHasMatch(this.r)) {
