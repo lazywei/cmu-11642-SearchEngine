@@ -161,17 +161,6 @@ public abstract class QryIop extends Qry {
     }
 
     /**
-     *  Get the Doc Len associated with this query operator. It is an error to
-     *  call this method before the object's initialize method is called. Also,
-     *  this assumes that there is at least one match.
-     *  @return The matched document length (doclen).
-     */
-    public int getMatchDocLen() {
-        return 1;
-        // return this.invertedList.getTf(this.docIteratorIndex);
-    }
-
-    /**
      *  Get the field associated with this query operator.
      *  @return The field associated with this query operator.
      */

@@ -3,6 +3,7 @@
  */
 
 import java.io.*;
+import java.util.*;
 
 /**
  *  The AND operator for all retrieval models.
@@ -15,7 +16,20 @@ public class QrySopAnd extends QrySop {
      *  @return True if the query matches, otherwise false.
      */
     public boolean docIteratorHasMatch (RetrievalModel r) {
-        return this.docIteratorHasMatchAll (r);
+        if (r instanceof RetrievalModelIndri)
+            return this.docIteratorHasMatchMin(r);
+        else
+            return this.docIteratorHasMatchAll(r);
+    }
+
+    /**
+     *  Get the i'th query argument.  The main value of this method
+     *  is that it casts the argument to the correct type.
+     *  @param i The index of the query argument to return.
+     *  @return The query argument.
+     */
+    public QrySop getArgSop (int i) {
+        return ((QrySop) this.args.get(i));
     }
 
     /**
@@ -27,12 +41,31 @@ public class QrySopAnd extends QrySop {
     public double getScore (RetrievalModel r) throws IOException {
 
         if (r instanceof RetrievalModelUnrankedBoolean) {
-            return this.getScoreUnrankedBoolean (r);
+            return this.getScoreUnrankedBoolean(r);
         } else if (r instanceof RetrievalModelRankedBoolean) {
-            return this.getScoreRankedBoolean (r);
+            return this.getScoreRankedBoolean(r);
+        } else if (r instanceof RetrievalModelIndri) {
+            return this.getScoreIndri(r);
         } else {
             throw new IllegalArgumentException
                 (r.getClass().getName() + " doesn't support the AND operator.");
+        }
+    }
+
+    /**
+     *  Get the default score for the document that docIteratorHasMatch matched.
+     *  This is particularly designed for Indri model
+     *  @param r The retrieval model that determines how scores are calculated.
+     *  @return The document score.
+     *  @throws IOException Error accessing the Lucene index
+     */
+    public double getDefaultScore (RetrievalModel r) throws IOException {
+
+        if (r instanceof RetrievalModelIndri) {
+            return this.getDefaultScoreIndri(r);
+        } else {
+            throw new IllegalArgumentException
+                (r.getClass().getName() + " doesn't support the AND operator for getDefaultScore.");
         }
     }
 
@@ -68,6 +101,51 @@ public class QrySopAnd extends QrySop {
 
             return score;
         }
+    }
+
+    /**
+     *  getScore for the Indri retrieval model.
+     *  @param r The retrieval model that determines how scores are calculated.
+     *  @return The document score.
+     *  @throws IOException Error accessing the Lucene index
+     */
+    private double getScoreIndri(RetrievalModel r) throws IOException {
+        if (! this.docIteratorHasMatchCache()) {
+            return this.getDefaultScoreIndri(r);
+        } else {
+            RetrievalModelIndri indri = (RetrievalModelIndri) r;
+            ArrayList<Double> scores = new ArrayList<Double>();
+            int docid = this.docIteratorGetMatch();
+
+
+            for (Qry q_i: this.args) {
+                if (q_i.docIteratorHasMatchCache() &&
+                    q_i.docIteratorGetMatch() == docid) {
+                    scores.add(((QrySop) q_i).getScore(r));
+                } else {
+                    scores.add(((QrySop) q_i).getDefaultScore(r));
+                }
+            }
+
+            return indri.andCombiner(scores);
+        }
+    }
+
+    /**
+     *  getDefaultScore for the Indri retrieval model.
+     *  @param r The retrieval model that determines how scores are calculated.
+     *  @return The document score.
+     *  @throws IOException Error accessing the Lucene index
+     */
+    private double getDefaultScoreIndri(RetrievalModel r) throws IOException {
+        RetrievalModelIndri indri = (RetrievalModelIndri) r;
+        ArrayList<Double> scores = new ArrayList<Double>();
+
+        for (Qry q_i: this.args) {
+            scores.add(((QrySop) q_i).getDefaultScore(r));
+        }
+
+        return indri.andCombiner(scores);
     }
 
 }

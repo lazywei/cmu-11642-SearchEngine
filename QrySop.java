@@ -24,6 +24,15 @@ public abstract class QrySop extends Qry {
         throws IOException;
 
     /**
+     *  Get a default score for the document that docIteratorHasMatch matched.
+     *  @param r The retrieval model that determines how scores are calculated.
+     *  @return The document score.
+     *  @throws IOException Error accessing the Lucene index
+     */
+    public abstract double getDefaultScore (RetrievalModel r)
+        throws IOException;
+
+    /**
      *  Initialize the query operator (and its arguments), including any
      *  internal iterators.  If the query operator is of type QryIop, it
      *  is fully evaluated, and the results are stored in an internal

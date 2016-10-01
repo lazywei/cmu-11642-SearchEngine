@@ -34,13 +34,17 @@ public class RetrievalModelBM25 extends RetrievalModel {
         return this.k3;
     }
 
-    public long getNumDocs(String fieldName) throws IOException  {
+    public long getNumDocsByField(String fieldName) throws IOException  {
         return Idx.getDocCount(fieldName);
+    }
+
+    public long getTotalNumDocs() throws IOException  {
+        return Idx.getNumDocs();
     }
 
     public double getAvgDocLen(String fieldName) throws IOException  {
         long totalLen = Idx.getSumOfFieldLengths(fieldName);
-        long nDocs = this.getNumDocs(fieldName);
+        long nDocs = this.getNumDocsByField(fieldName);
 
         return ((double)totalLen / (double)nDocs);
     }
@@ -59,12 +63,11 @@ public class RetrievalModelBM25 extends RetrievalModel {
         int df = qIop.getDf();
         int tf = qIop.getMatchTf();
 
-        long nDocs = this.getNumDocs(fieldName);
+        long nDocs = this.getTotalNumDocs();
         long doclen = this.getDocLen(fieldName, docid);
         double avgDoclen = this.getAvgDocLen(fieldName);
 
         double logTerm = Math.max(0, Math.log((nDocs - df + 0.5) / (df + 0.5)));
-
         double tfTerm = tf / (tf + k1 * ((1 - b) + b * doclen / avgDoclen));
         double queryWeight = 1;
 

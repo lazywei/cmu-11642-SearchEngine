@@ -3,6 +3,7 @@
  */
 
 import java.io.*;
+import java.util.*;
 
 /**
  *  An object that stores parameters for the Indri retrieval model and
@@ -30,6 +31,28 @@ public class RetrievalModelIndri extends RetrievalModel {
         return this.lambda;
     }
 
+    public double getDefaultScore() {
+        return 1.0;
+    }
+
+    // combine scores for AND
+    public double andCombiner(ArrayList<Double> scores) {
+        double geoMeanPow = 1/(double)(scores.size());
+        double result = 1;
+
+        for (Double score: scores) {
+            result *= Math.pow(score, geoMeanPow);
+        }
+
+        return result;
+    }
+
+    private long getFieldLength(String fieldName) throws IOException  {
+        return Idx.getSumOfFieldLengths(fieldName);
+    }
+
+    ///////////////////////////////////
+
     public long getNumDocs(String fieldName) throws IOException  {
         return Idx.getDocCount(fieldName);
     }
@@ -48,5 +71,6 @@ public class RetrievalModelIndri extends RetrievalModel {
     public double calculateScore(QryIop qIop) throws IOException {
         return 1;
     }
+
 
 }

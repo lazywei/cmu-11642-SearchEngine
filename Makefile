@@ -23,13 +23,13 @@ test: all $(test_classes)
 
 ## Runner tasks
 
-run_toy:
+run_toy: all
 	java $(CLASS_FLAG) QryEval params/toy
 
-run_train:
+run_train: all
 	java $(CLASS_FLAG) QryEval params/$(HW_N)/$(HW_N)-Train-$(T).param
 
-run_exp:
+run_exp: all
 	java $(CLASS_FLAG) QryEval params/expSt && \
 	java $(CLASS_FLAG) QryEval params/expAnd && \
 	java $(CLASS_FLAG) QryEval params/expOr
