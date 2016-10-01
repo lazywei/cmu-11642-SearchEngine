@@ -55,10 +55,6 @@ public class TestRetrievalModelIndri {
     }
 
     @Test
-    public void testActualScore() {
-    }
-
-    @Test
     public void testIndriAndCombiner() throws IOException {
         ArrayList<Double> scores = new ArrayList<Double>();
         scores.add(2.0);
@@ -70,23 +66,41 @@ public class TestRetrievalModelIndri {
     }
 
     @Test
+    public void testIndriWandCombiner() throws IOException {
+        ArrayList<Double> scores = new ArrayList<Double>();
+        scores.add(27.0);
+        scores.add(8.0);
+
+        ArrayList<Double> weights = new ArrayList<Double>();
+        weights.add(2.0);
+        weights.add(1.0);
+
+        assertEquals(
+            18.0,
+            ((RetrievalModelIndri) this.r).wandCombiner(scores, weights),
+            1e-6);
+    }
+
+    @Test
+    public void testIndriWsumCombiner() throws IOException {
+        ArrayList<Double> scores = new ArrayList<Double>();
+        scores.add(27.0);
+        scores.add(8.0);
+
+        ArrayList<Double> weights = new ArrayList<Double>();
+        weights.add(2.0);
+        weights.add(1.0);
+
+        assertEquals(
+            11.0,
+            ((RetrievalModelIndri) this.r).wsumCombiner(scores, weights),
+            1e-6);
+    }
+
+    @Test
     public void testIndriAndMatch() throws IOException {
         // check the strategy is matching the min docid
         assertEquals(true, this.q.docIteratorHasMatch(r));
         assertEquals(0, this.q.docIteratorGetMatch());
     }
-
-
-    // @Test
-    // public void testIndriAndCombiner() throws IOException {
-    //     QrySopAnd qAnd = (QrySopAnd) this.q;
-
-    //     double scoreAnd = qAnd.getScore(r);
-    //     double scorePie = qAnd.getArgSop(0).getScore(r);
-    //     double scoreDoctor = qAnd.getArgSop(1).getScore(r);
-
-    //     // Check the geometric mean is correctly performed
-    //     assertEquals(Math.sqrt(scorePie) * Math.sqrt(scoreDoctor),
-    //                  scoreAnd, 1e-6);
-    // }
 }

@@ -57,6 +57,38 @@ public class RetrievalModelIndri extends RetrievalModel {
         return result;
     }
 
+    // combine scores for WAND
+    public double wandCombiner(ArrayList<Double> scores,
+                               ArrayList<Double> weights) {
+        double result = 1;
+        double totalWeight = 0.0;
+
+        for (int i = 0; i < weights.size(); i++)
+            totalWeight += weights.get(i);
+
+        for (int i = 0; i < scores.size(); i++) {
+            result *= Math.pow(scores.get(i), weights.get(i) / totalWeight);
+        }
+
+        return result;
+    }
+
+    // combine scores for WSUM
+    public double wsumCombiner(ArrayList<Double> scores,
+                               ArrayList<Double> weights) {
+        double result = 0;
+        double totalWeight = 0.0;
+
+        for (int i = 0; i < weights.size(); i++)
+            totalWeight += weights.get(i);
+
+        for (int i = 0; i < scores.size(); i++) {
+            result += Math.pow(scores.get(i), weights.get(i) / totalWeight);
+        }
+
+        return result;
+    }
+
     private double queryLikelihood(int tf, int ctf,
                                    String fieldName, int docid) throws IOException {
         double len_d = (double)(Idx.getFieldLength(fieldName, docid));
