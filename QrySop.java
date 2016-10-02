@@ -24,17 +24,6 @@ public abstract class QrySop extends Qry {
         throws IOException;
 
     /**
-     *  Get a default indri score for the document=docid.
-     *  @param r The retrieval model that determines how scores are calculated.
-     *  @return The document score.
-     *  @throws IOException Error accessing the Lucene index
-     */
-    public double getDefaultIndriScore(RetrievalModel r, int docid) throws IOException {
-        throw new IllegalArgumentException
-            ("QrySopXXX's getDefaultIndriScore is not implemented.");
-    }
-
-    /**
      *  Initialize the query operator (and its arguments), including any
      *  internal iterators.  If the query operator is of type QryIop, it
      *  is fully evaluated, and the results are stored in an internal

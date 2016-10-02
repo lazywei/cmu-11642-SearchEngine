@@ -92,7 +92,7 @@ public class TestRetrievalModelIndri {
         weights.add(1.0);
 
         assertEquals(
-            11.0,
+            27.0 * (2.0 / 3.0) + 8.0 * (1.0 / 3.0),
             ((RetrievalModelIndri) this.r).wsumCombiner(scores, weights),
             1e-6);
     }

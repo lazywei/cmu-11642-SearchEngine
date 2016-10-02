@@ -8,7 +8,8 @@ import java.util.*;
 /**
  *  The AND operator for all retrieval models.
  */
-public class QrySopIndriWsum extends QrySop implements QryWeightable {
+public class QrySopIndriWsum extends QrySop
+    implements QryIFWeightable, QryIFIndriable {
 
     private ArrayList<Double> weights;
 
@@ -68,7 +69,7 @@ public class QrySopIndriWsum extends QrySop implements QryWeightable {
                     q_i.docIteratorGetMatch() == docid) {
                     scores.add(((QrySop) q_i).getScore(r));
                 } else {
-                    scores.add(((QrySop) q_i).getDefaultIndriScore(r, docid));
+                    scores.add(((QryIFIndriable) q_i).getDefaultIndriScore(r, docid));
                 }
             }
 
@@ -88,7 +89,7 @@ public class QrySopIndriWsum extends QrySop implements QryWeightable {
         ArrayList<Double> scores = new ArrayList<Double>();
 
         for (Qry q_i: this.args) {
-            scores.add(((QrySop) q_i).getDefaultIndriScore(r, docid));
+            scores.add(((QryIFIndriable) q_i).getDefaultIndriScore(r, docid));
         }
 
         return indri.wsumCombiner(scores, this.weights);

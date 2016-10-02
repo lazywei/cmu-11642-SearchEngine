@@ -8,7 +8,7 @@ import java.lang.IllegalArgumentException;
 /**
  *  The SCORE operator for all retrieval models.
  */
-public class QrySopScore extends QrySop {
+public class QrySopScore extends QrySop implements QryIFIndriable {
 
     /**
      *  Document-independent values that should be determined just once.

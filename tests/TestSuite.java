@@ -7,6 +7,7 @@ import org.junit.Test;
 @Suite.SuiteClasses({
         TestRetrievalModelIndri.class,
         TestRetrievalModelBM25.class,
+        TestQryIopNear.class,
         TestQryParser.class
 })
 

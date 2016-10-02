@@ -8,7 +8,7 @@ import java.util.*;
 /**
  *  The AND operator for all retrieval models.
  */
-public class QrySopAnd extends QrySop {
+public class QrySopAnd extends QrySop implements QryIFIndriable {
 
     /**
      *  Indicates whether the query has a match.
@@ -106,7 +106,7 @@ public class QrySopAnd extends QrySop {
                     q_i.docIteratorGetMatch() == docid) {
                     scores.add(((QrySop) q_i).getScore(r));
                 } else {
-                    scores.add(((QrySop) q_i).getDefaultIndriScore(r, docid));
+                    scores.add(((QryIFIndriable) q_i).getDefaultIndriScore(r, docid));
                 }
             }
 
@@ -126,7 +126,7 @@ public class QrySopAnd extends QrySop {
         ArrayList<Double> scores = new ArrayList<Double>();
 
         for (Qry q_i: this.args) {
-            scores.add(((QrySop) q_i).getDefaultIndriScore(r, docid));
+            scores.add(((QryIFIndriable) q_i).getDefaultIndriScore(r, docid));
         }
 
         return indri.andCombiner(scores);

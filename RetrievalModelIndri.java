@@ -83,7 +83,7 @@ public class RetrievalModelIndri extends RetrievalModel {
             totalWeight += weights.get(i);
 
         for (int i = 0; i < scores.size(); i++) {
-            result += Math.pow(scores.get(i), weights.get(i) / totalWeight);
+            result += scores.get(i) * weights.get(i) / totalWeight;
         }
 
         return result;
@@ -96,12 +96,6 @@ public class RetrievalModelIndri extends RetrievalModel {
 
         double pMLE = (double)ctf / len_c;
         double smoothed = ((double)tf + this.getMu() * pMLE) / (len_d + this.getMu());
-        // System.out.println("");
-        // System.out.format(
-        //     "(%d) tf = %d, ctf = %d, len_d = %f, len_c = %f, fieldName = %s\n",
-        //     docid, tf, ctf, len_d, len_c, fieldName);
-        // System.out.println(pMLE);
-        //     System.out.println(smoothed);
         return (1 - this.getLambda()) * smoothed + this.getLambda()*pMLE;
     }
 }

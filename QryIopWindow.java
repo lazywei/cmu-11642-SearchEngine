@@ -5,12 +5,12 @@ import java.io.*;
 import java.util.*;
 
 /**
- *  The NEAR operator for all retrieval models.
+ *  The Window operator for all retrieval models.
  */
-public class QryIopNear extends QryIop {
+public class QryIopWindow extends QryIop {
 
     private int opDistance;
-    public QryIopNear(int opDistance) {
+    public QryIopWindow(int opDistance) {
         this.opDistance = opDistance;
     }
 
@@ -58,33 +58,20 @@ public class QryIopNear extends QryIop {
                 // --- Done Checking ---
 
                 // --- Start find location that satisfies the requirement.
-                Qry q_0 = this.args.get(0);
-                int prevLoc = ((QryIop) q_0).locIteratorGetMatch();
-                boolean matchFound = true;
+                QryIop maxQ = (QryIop) this.maxLocQry();
+                QryIop minQ = (QryIop) this.minLocQry();
 
-                for (int i=1; i<this.args.size(); i++) {
-                    Qry q_i = this.args.get(i);
-                    int currLoc = ((QryIop) q_i).locIteratorGetMatch();
-
-                    if (validDistance(prevLoc, currLoc)) {
-                        prevLoc = currLoc;
-                    } else {
-                        matchFound = false;
-                        break;
-                    }
-                }
-
-                if (matchFound) {
+                if (maxQ.locIteratorGetMatch() -
+                    minQ.locIteratorGetMatch() + 1 <= this.opDistance) {
                     // When match, all loc iter need to be advanced as one
                     // location can only be matched once.
-                    positions.add(prevLoc);
+                    positions.add(maxQ.locIteratorGetMatch());
                     for (int i=0; i<this.args.size(); i++) {
                         Qry q_i = this.args.get(i);
                         ((QryIop) q_i).locIteratorAdvance();
                     }
                 } else {
-                    ((QryIop) this.minLocQry()).locIteratorAdvancePast(
-                        ((QryIop) q_0).locIteratorGetMatch());
+                    ((QryIop) this.minLocQry()).locIteratorAdvance();
                 }
             }
 
@@ -98,11 +85,6 @@ public class QryIopNear extends QryIop {
                 ((QryIop) q_i).docIteratorAdvancePast(docid);
             }
         }
-    }
-
-    private boolean validDistance(int loc1, int loc2) {
-        int diff = loc2 - loc1;
-        return (diff > 0) && (diff <= this.opDistance);
     }
 
     /**
@@ -120,6 +102,23 @@ public class QryIopNear extends QryIop {
             }
         }
         return this.args.get(idxOfMinLoc);
+    }
+
+    /**
+     *  Helper function, get the i-th args which has the maximum loc iter
+     *  location.
+     */
+    private Qry maxLocQry() {
+        int idxOfMaxLoc = 0;
+
+        for (int i=1; i<this.args.size(); i++) {
+            Qry q_i = this.args.get(i);
+            if (locIsGeqThan(this.args.get(i),
+                             this.args.get(idxOfMaxLoc))) {
+                idxOfMaxLoc = i;
+            }
+        }
+        return this.args.get(idxOfMaxLoc);
     }
 
     /**

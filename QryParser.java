@@ -112,6 +112,10 @@ public class QryParser {
             operator = new QryIopNear(operatorDistance);
             break;
 
+        case "#window":
+            operator = new QryIopWindow(operatorDistance);
+            break;
+
         case "#sum":
             operator = new QrySopBM25Sum();
             break;
@@ -335,7 +339,7 @@ public class QryParser {
 
             // If this is a weighted query, we pop the weight first, and then we
             // process the remaining query string as usual.
-            if (queryTree instanceof QryWeightable) {
+            if (queryTree instanceof QryIFWeightable) {
 
                 p = popTerm (queryString);
                 weight = Double.parseDouble(p.getPopped());
@@ -360,8 +364,8 @@ public class QryParser {
                 //  STUDENTS WILL NEED TO ADJUST THIS BLOCK TO HANDLE WEIGHTS IN HW2
                 queryTree.appendArg(qargs[i]);
 
-                if (queryTree instanceof QryWeightable) {
-                    ((QryWeightable) queryTree).appendWeight(weight);
+                if (queryTree instanceof QryIFWeightable) {
+                    ((QryIFWeightable) queryTree).appendWeight(weight);
                 }
             }
         }
