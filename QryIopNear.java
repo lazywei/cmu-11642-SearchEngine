@@ -30,6 +30,7 @@ public class QryIopNear extends QryIop {
             return;
         }
 
+
         while (this.docIteratorHasMatchAll(null)) {
             // Get current comparing docid.
             // Since QryIop's docIteratorGetMatch will go directly into its
@@ -40,12 +41,41 @@ public class QryIopNear extends QryIop {
             //  Create a new posting that satisfies the location requirement.
             List<Integer> positions = new ArrayList<Integer>();
 
+            if (docid == 172664) {
+                for (Qry q_i: this.args) {
+                    System.out.println(q_i);
+                    while ( ((QryIop) q_i).locIteratorHasMatch()) {
+                        System.out.println(((QryIop) q_i).locIteratorGetMatch());
+                        ((QryIop) q_i).locIteratorAdvance();
+                    }
+                }
+                System.out.println("---");
+                for (Qry q_i: this.args) {
+                    ((QryIop) q_i).docIteratorAdvanceTo(docid);
+                }
+            }
+
             while(true) {
 
                 // --- Check if any sub-query's location iterator has finished.
                 boolean allLocHasMatch = true;
-                for (Qry q_i: this.args) {
-                    if (! ((QryIop) q_i).locIteratorHasMatch()) {
+
+                // If the first arg is done, we all done
+                if (! ((QryIop) this.args.get(0)).locIteratorHasMatch())
+                    break;
+
+                for (int i = 1; i < this.args.size(); i++) {
+                    QryIop prevQryIop = (QryIop) this.args.get(i-1);
+                    QryIop currQryIop = (QryIop) this.args.get(i);
+
+
+                    currQryIop.locIteratorAdvancePast(
+                        prevQryIop.locIteratorGetMatch());
+
+                    if (! currQryIop.locIteratorHasMatch()) {
+                        if (docid == 172664) {
+                            System.out.println(i + "-th has no match");
+                        }
                         allLocHasMatch = false;
                         break;
                     }
@@ -57,16 +87,25 @@ public class QryIopNear extends QryIop {
                     break;
                 // --- Done Checking ---
 
+
                 // --- Start find location that satisfies the requirement.
                 Qry q_0 = this.args.get(0);
                 int prevLoc = ((QryIop) q_0).locIteratorGetMatch();
                 boolean matchFound = true;
 
+                if (docid == 172664) {
+                    System.out.println("0-th arg loc = " + prevLoc);
+                }
                 for (int i=1; i<this.args.size(); i++) {
                     Qry q_i = this.args.get(i);
                     int currLoc = ((QryIop) q_i).locIteratorGetMatch();
 
-                    if (validDistance(prevLoc, currLoc)) {
+                    if (docid == 172664) {
+                        System.out.format("%d-th arg loc = %d\n", i, currLoc);
+                    }
+
+                    if (currLoc > prevLoc &&
+                        (currLoc - prevLoc) <= this.opDistance) {
                         prevLoc = currLoc;
                     } else {
                         matchFound = false;
@@ -83,8 +122,7 @@ public class QryIopNear extends QryIop {
                         ((QryIop) q_i).locIteratorAdvance();
                     }
                 } else {
-                    ((QryIop) this.minLocQry()).locIteratorAdvancePast(
-                        ((QryIop) q_0).locIteratorGetMatch());
+                    ((QryIop) this.minLocQry()).locIteratorAdvance();
                 }
             }
 

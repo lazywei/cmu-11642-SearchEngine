@@ -74,6 +74,7 @@ public class RetrievalModelBM25 extends RetrievalModel {
 
         if (qIop instanceof QryIopNear &&
             Idx.getExternalDocid(docid).equals("clueweb09-en0003-01-26776")) {
+            System.out.println(docid);
             System.out.println(qIop);
             System.out.println(df);
             System.out.println(logTerm);
