@@ -33,9 +33,7 @@ inspect: all
 	java $(CLASS_FLAG) InspectIndex -index INPUT_DIR/index -list-stats
 
 run_exp: all
-	java $(CLASS_FLAG) QryEval params/expSt && \
-	java $(CLASS_FLAG) QryEval params/expAnd && \
-	java $(CLASS_FLAG) QryEval params/expOr
+	java $(CLASS_FLAG) QryEval params/$(HW_N)/$(HW_N)-Exp-3-indri.param
 
 clean:
 	rm -f *.class ./tests/*.class

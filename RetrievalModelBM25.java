@@ -71,17 +71,6 @@ public class RetrievalModelBM25 extends RetrievalModel {
         double tfTerm = tf / (tf + k1 * ((1 - b) + b * doclen / avgDoclen));
         double queryWeight = 1;
 
-
-        if (qIop instanceof QryIopNear &&
-            Idx.getExternalDocid(docid).equals("clueweb09-en0003-01-26776")) {
-            System.out.println(docid);
-            System.out.println(qIop);
-            System.out.println(df);
-            System.out.println(logTerm);
-            System.out.println(tfTerm);
-            System.out.println(logTerm * tfTerm);
-        }
-
         return logTerm * tfTerm * queryWeight;
     }
 

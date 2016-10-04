@@ -1,0 +1,6 @@
+indexPath=INPUT_DIR/index
+queryFilePath=TEST_DIR/HW2-Train-55.qry
+trecEvalOutputPath=OUTPUT_DIR/HW2-Train-55.teIn
+retrievalAlgorithm=Indri
+Indri:mu=2500
+Indri:lambda=0.4

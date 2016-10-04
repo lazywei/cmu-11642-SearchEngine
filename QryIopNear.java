@@ -41,20 +41,6 @@ public class QryIopNear extends QryIop {
             //  Create a new posting that satisfies the location requirement.
             List<Integer> positions = new ArrayList<Integer>();
 
-            if (docid == 172664) {
-                for (Qry q_i: this.args) {
-                    System.out.println(q_i);
-                    while ( ((QryIop) q_i).locIteratorHasMatch()) {
-                        System.out.println(((QryIop) q_i).locIteratorGetMatch());
-                        ((QryIop) q_i).locIteratorAdvance();
-                    }
-                }
-                System.out.println("---");
-                for (Qry q_i: this.args) {
-                    ((QryIop) q_i).docIteratorAdvanceTo(docid);
-                }
-            }
-
             while(true) {
 
                 // --- Check if any sub-query's location iterator has finished.
@@ -64,18 +50,16 @@ public class QryIopNear extends QryIop {
                 if (! ((QryIop) this.args.get(0)).locIteratorHasMatch())
                     break;
 
+                // Before everything, we first make sure every location
+                // iterators are in ascending order
                 for (int i = 1; i < this.args.size(); i++) {
                     QryIop prevQryIop = (QryIop) this.args.get(i-1);
                     QryIop currQryIop = (QryIop) this.args.get(i);
-
 
                     currQryIop.locIteratorAdvancePast(
                         prevQryIop.locIteratorGetMatch());
 
                     if (! currQryIop.locIteratorHasMatch()) {
-                        if (docid == 172664) {
-                            System.out.println(i + "-th has no match");
-                        }
                         allLocHasMatch = false;
                         break;
                     }
@@ -93,16 +77,9 @@ public class QryIopNear extends QryIop {
                 int prevLoc = ((QryIop) q_0).locIteratorGetMatch();
                 boolean matchFound = true;
 
-                if (docid == 172664) {
-                    System.out.println("0-th arg loc = " + prevLoc);
-                }
                 for (int i=1; i<this.args.size(); i++) {
                     Qry q_i = this.args.get(i);
                     int currLoc = ((QryIop) q_i).locIteratorGetMatch();
-
-                    if (docid == 172664) {
-                        System.out.format("%d-th arg loc = %d\n", i, currLoc);
-                    }
 
                     if (currLoc > prevLoc &&
                         (currLoc - prevLoc) <= this.opDistance) {

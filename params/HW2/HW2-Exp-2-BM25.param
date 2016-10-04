@@ -1,0 +1,7 @@
+indexPath=INPUT_DIR/index
+queryFilePath=TEST_DIR/HW2-Exp-2.qry
+trecEvalOutputPath=OUTPUT_DIR/HW2-Exp-2-BM25-100000-75.teIn
+retrievalAlgorithm=BM25
+BM25:k_1=100000.0
+BM25:b=0.75
+BM25:k_3=0.0

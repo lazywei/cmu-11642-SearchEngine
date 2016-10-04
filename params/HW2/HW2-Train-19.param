@@ -1,0 +1,7 @@
+indexPath=INPUT_DIR/index
+queryFilePath=TEST_DIR/HW2-Train-19.qry
+trecEvalOutputPath=OUTPUT_DIR/HW2-Train-19.teIn
+retrievalAlgorithm=BM25
+BM25:k_1=1.2
+BM25:b=0.75
+BM25:k_3=0.0

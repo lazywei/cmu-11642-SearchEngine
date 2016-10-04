@@ -1,0 +1,1 @@
+29:#AND(#AND(#NEAR/2(ps.title 2.title) games)   #AND(#NEAR/2(ps.body 2.body) games.body))

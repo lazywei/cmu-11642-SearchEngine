@@ -1,0 +1,1 @@
+149:#WSUM(0.3 #AND(yellowstone.title national.title park.title) 0.7 #AND(uplift at yellowstone national park))
