@@ -20,5 +20,4 @@ GRTAGS
 GTAGS
 
 /INPUT_DIR
-
-
+/pyutil/.auth
