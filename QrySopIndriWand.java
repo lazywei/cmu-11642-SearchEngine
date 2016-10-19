@@ -73,11 +73,6 @@ public class QrySopIndriWand extends QrySop
                 }
             }
 
-            if (docid == 507350) {
-                System.out.println(scores);
-                System.out.println(indri.wandCombiner(scores, this.weights));
-            }
-
             return indri.wandCombiner(scores, this.weights);
         }
     }

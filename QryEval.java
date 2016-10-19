@@ -4,6 +4,7 @@
  */
 import java.io.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import org.apache.lucene.analysis.Analyzer.TokenStreamComponents;
 import org.apache.lucene.analysis.TokenStream;
@@ -199,6 +200,10 @@ public class QryEval {
             fbOrigWeight = Double.parseDouble(parameters.get("fbOrigWeight"));
             fbInitialRankingFile = parameters.get("fbInitialRankingFile");
             fbExpansionQueryFile = parameters.get("fbExpansionQueryFile");
+
+            if (fbInitialRankingFile != null) {
+                // load ranking
+            }
         }
 
         // Begin processing
@@ -241,7 +246,7 @@ public class QryEval {
                     String expandedQuery = expandQuery(r, fbDocs, fbTerms, fbMu);
                     String combinedQuery = "#wand(" +
                         fbOrigWeight + " #and(" + query + ") " +
-                        (1.0 - fbOrigWeight) + " #and(" + expandedQuery + "))";
+                        (1.0 - fbOrigWeight) + " " + expandedQuery + ")";
                     r = processQuery(combinedQuery, model);
 
                     outputExpandedQuery(outputQry, qid, expandedQuery);
@@ -294,10 +299,63 @@ public class QryEval {
      */
     static String expandQuery(ScoreList result, int fbDocs,
                               int fbTerms, int fbMu) throws IOException {
+        Map<String, Double> termScores = new HashMap<String, Double>();
+
+        String field = "body";
+        long lenC = Idx.getSumOfFieldLengths(field);
+
+        // Ryan explained the TermVector API to me.
+        // Collect terms
         for (int i = 0; i < fbDocs; i++) {
+            TermVector tv = new TermVector(result.getDocid(i), field);
+
+            for (int j = 1; j < tv.stemsLength(); j++) {
+                String stem = tv.stemString(j);
+                if (stem.indexOf('.') < 0 && stem.indexOf(',') < 0 &&
+                    !termScores.containsKey(stem)) {
+                    termScores.put(stem, 0.0);
+                }
+            }
         }
 
-        return "What Ever String";
+        // Calculate scores
+        for (int i = 0; i < fbDocs; i++) {
+            TermVector tv = new TermVector(result.getDocid(i), field);
+            int lenD = tv.positionsLength();
+
+            for (String term: termScores.keySet()) {
+                long ctf = Idx.getTotalTermFreq(field, term);
+                int termIdx = tv.indexOfStem(term);
+                int tf = 0;
+                double oldScores = termScores.get(term);
+                double probTD = 0.0;
+                double logTerm = 0.0;
+
+                if (termIdx > 0) {
+                    tf = tv.stemFreq(termIdx);
+                }
+
+                probTD = ((double) tf) +
+                    ((double) fbMu) * ((double) ctf) / ((double) lenC);
+                probTD = probTD / ((double) (lenD + fbMu));
+
+                logTerm = Math.log(((double) lenC) / ((double) ctf));
+
+                termScores.put(term,
+                               oldScores +
+                               (probTD * result.getDocidScore(i) * logTerm));
+            }
+        }
+
+        String expandedQuery = termScores
+            .entrySet()
+            .stream()
+            .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
+            .limit(fbTerms)
+            .map((e1) -> String.valueOf(e1.getValue()) + " " + e1.getKey())
+            .collect(Collectors.joining(" "));
+
+        return "#wand(" + expandedQuery + ")";
     }
 
     /**
