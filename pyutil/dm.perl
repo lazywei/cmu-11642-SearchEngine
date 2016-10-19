@@ -41,9 +41,22 @@
 # print formulate_query( "white house rose garden", "sd", 0.5, 0.25, 0.25 ) . "\n\n";
 # print formulate_query( "white house rose garden", "fd", 0.8, 0.1, 0.1 ) . "\n\n";
 
-print formulate_query( "sherwood regional library", "sd", 0.8, 0.15, 0.05 ) . "\n\n";
-print formulate_query( "sherwood regional library", "sd", 0.8, 0.05, 0.15 ) . "\n\n";
-print formulate_query( "sherwood regional library", "sd", 0.0, 0.50, 0.50 ) . "\n\n";
+# print formulate_query( "sherwood regional library", "sd", 0.8, 0.15, 0.05 ) . "\n\n";
+# print formulate_query( "sherwood regional library", "sd", 0.8, 0.05, 0.15 ) . "\n\n";
+# print formulate_query( "sherwood regional library", "sd", 0.0, 0.50, 0.50 ) . "\n\n";
+$w0 = 0.8;
+$w1 = 0.15;
+$w2 = 0.05;
+print "69:",formulate_query( "sewing instructions", "sd", $w0, $w1, $w2 ) . "\n";
+print "79:",formulate_query( "voyager", "sd", $w0, $w1, $w2 ) . "\n";
+print "84:",formulate_query( "continental plates", "sd", $w0, $w1, $w2 ) . "\n";
+print "89:",formulate_query( "ocd", "sd", $w0, $w1, $w2 ) . "\n";
+print "108:",formulate_query( "ralph owen brewster", "sd", $w0, $w1, $w2 ) . "\n";
+print "141:",formulate_query( "va dmv registration", "sd", $w0, $w1, $w2 ) . "\n";
+print "146:",formulate_query( "sherwood regional library", "sd", $w0, $w1, $w2 ) . "\n";
+print "153:",formulate_query( "pocono", "sd", $w0, $w1, $w2 ) . "\n";
+print "171:",formulate_query( "ron howard", "sd", $w0, $w1, $w2 ) . "\n";
+print "197:",formulate_query( "idaho state flower", "sd", $w0, $w1, $w2 ) . "\n";
 
 # print formulate_query( "sherwood regional library", "sd", 0.2, 0.40, 0.40 ) . "\n\n";
 # print formulate_query( "sherwood regional library", "sd", 0.34, 0.33, 0.33 ) . "\n\n";

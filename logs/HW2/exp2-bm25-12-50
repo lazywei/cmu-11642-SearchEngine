@@ -1,0 +1,46 @@
+java -cp ".:./tests:../lucene-4.3.0/*:../junit/*" QryEval params/HW2/HW2-Exp-2-BM25.param
+{trecEvalOutputPath=OUTPUT_DIR/HW2-Exp-2-BM25-12-50.teIn, retrievalAlgorithm=BM25, BM25:b=0.50, BM25:k_3=0.0, queryFilePath=TEST_DIR/HW2-Exp-2.qry, BM25:k_1=1.2, indexPath=INPUT_DIR/index}
+Memory used:  24 MB
+Query 69:sewing instructions
+    --> #sum( #SCORE( sewing.body ) #SCORE( instruction.body ) )
+
+Memory used:  35 MB
+Query 79:voyager
+    --> #SCORE( voyager.body )
+
+Memory used:  40 MB
+Query 84:continental plates
+    --> #sum( #SCORE( continental.body ) #SCORE( plate.body ) )
+
+Memory used:  68 MB
+Query 89:ocd
+    --> #SCORE( ocd.body )
+
+Memory used:  69 MB
+Query 108:ralph owen brewster
+    --> #sum( #SCORE( ralph.body ) #SCORE( owen.body ) #SCORE( brewster.body ) )
+
+Memory used:  85 MB
+Query 141:va dmv registration
+    --> #sum( #SCORE( va.body ) #SCORE( dmv.body ) #SCORE( registration.body ) )
+
+Memory used:  74 MB
+Query 146:sherwood regional library
+    --> #sum( #SCORE( sherwood.body ) #SCORE( regional.body ) #SCORE( library.body ) )
+
+Memory used:  125 MB
+Query 153:pocono
+    --> #SCORE( pocono.body )
+
+Memory used:  129 MB
+Query 171:ron howard
+    --> #sum( #SCORE( ron.body ) #SCORE( howard.body ) )
+
+Memory used:  152 MB
+Query 197:idaho state flower
+    --> #sum( #SCORE( idaho.body ) #SCORE( state.body ) #SCORE( flower.body ) )
+
+Time:  10119.159 ms
+# java -cp ".:./tests:../lucene-4.3.0/*:../junit/*" QryEval params/HW2/HW2-Exp-1-Indri.param && \
+	# java -cp ".:./tests:../lucene-4.3.0/*:../junit/*" QryEval params/HW2/HW2-Exp-1-BM25.param && \
+	# java -cp ".:./tests:../lucene-4.3.0/*:../junit/*" QryEval params/HW2/HW2-Exp-1-RankedBoolean.param
