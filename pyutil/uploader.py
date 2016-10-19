@@ -5,7 +5,7 @@ import re
 import sys
 import os
 
-HWID = "HW2"
+HWID = "HW3"
 url = "http://boston.lti.cs.cmu.edu/classes/11-642/HW/HTS/hts.cgi"
 
 zipPath = sys.argv[1]
@@ -16,7 +16,18 @@ zipFile = os.path.basename(zipPath)
 
 m = MultipartEncoder(
     fields={'submissionType': 'interim', 'hwid': HWID,
-            'test': 'HW2-Train-0',
+            'test': [
+                'HW3-Train-0',
+                'HW3-Train-1',
+                'HW3-Train-2',
+                # 'HW3-Train-3',
+                # 'HW3-Train-4',
+                # 'HW3-Train-5',
+                # 'HW3-Train-6',
+                # 'HW3-Train-7',
+                # 'HW3-Train-8',
+                # 'HW3-Train-9',
+            ],
             'infile': (zipFile, open(zipPath, 'rb'), 'application/zip')}
 )
 
@@ -32,9 +43,11 @@ r = requests.post(
         'Connection': 'keep-alive',
     })
 
-pattern = re.compile("(map|P10|P20|P30)\s+all")
-print("\n".join(filter(lambda x:
-                       pattern.match(x) or
-                       "%" in x or
-                       "grade" in x or
-                       "Test" in x, r.text.split("<br />"))))
+print("\n".join(r.text.split("<br />")))
+
+# pattern = re.compile("(map|P10|P20|P30)\s+all")
+# print("\n".join(filter(lambda x:
+#                        pattern.match(x) or
+#                        "%" in x or
+#                        "grade" in x or
+#                        "Test" in x, r.text.split("<br />"))))

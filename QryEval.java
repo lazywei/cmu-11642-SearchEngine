@@ -166,6 +166,36 @@ public class QryEval {
             return null;
     }
 
+    // Load ranking from file
+    static Map<String, ScoreList> loadRanking(String rankingFile)
+        throws Exception {
+        BufferedReader input = new BufferedReader(new FileReader(rankingFile));
+        Map<String, ScoreList> scoreLists = new HashMap<String, ScoreList>();
+
+        String rLine = null;
+
+        while ((rLine = input.readLine()) != null) {
+            String[] tokens = rLine.split("\\s");
+
+            String qid = tokens[0];
+            String externalDocid = tokens[2];
+            int docid = Idx.getInternalDocid(externalDocid);
+            Double score = Double.parseDouble(tokens[4]);
+
+            ScoreList sl = null;
+            if (scoreLists.containsKey(qid)) {
+                sl = scoreLists.get(qid);
+            } else {
+                sl = new ScoreList();
+                scoreLists.put(qid, sl);
+            }
+
+            sl.add(docid, score);
+        }
+
+        return scoreLists;
+    }
+
     /**
      *  Process the query file.
      *  @param queryFilePath
@@ -200,10 +230,6 @@ public class QryEval {
             fbOrigWeight = Double.parseDouble(parameters.get("fbOrigWeight"));
             fbInitialRankingFile = parameters.get("fbInitialRankingFile");
             fbExpansionQueryFile = parameters.get("fbExpansionQueryFile");
-
-            if (fbInitialRankingFile != null) {
-                // load ranking
-            }
         }
 
         // Begin processing
@@ -213,8 +239,12 @@ public class QryEval {
             input = new BufferedReader(new FileReader(queryFilePath));
             output = new BufferedWriter(new FileWriter(outputFilePath));
 
+            Map<String, ScoreList> prerankedScoreLists = null;
             if (doExpand) {
                 outputQry = new BufferedWriter(new FileWriter(fbExpansionQueryFile));
+                if (fbInitialRankingFile != null) {
+                    prerankedScoreLists = loadRanking(fbInitialRankingFile);
+                }
             }
 
             //  Each pass of the loop processes one query.
@@ -236,9 +266,14 @@ public class QryEval {
 
                 ScoreList r = null;
 
-                r = processQuery(query, model);
-
                 if (doExpand) {
+
+                    if (prerankedScoreLists != null) {
+                        r = prerankedScoreLists.get(qid);
+                    } else {
+                        r = processQuery(query, model);
+                    }
+
                     r.sort();
                     r.truncate(fbDocs);
 
@@ -248,12 +283,15 @@ public class QryEval {
                         fbOrigWeight + " #and(" + query + ") " +
                         (1.0 - fbOrigWeight) + " " + expandedQuery + ")";
                     r = processQuery(combinedQuery, model);
+                    r.sort();
+                    r.truncate(100);
 
                     outputExpandedQuery(outputQry, qid, expandedQuery);
+                } else {
+                    r = processQuery(query, model);
+                    r.sort();
+                    r.truncate(100);
                 }
-
-                r.sort();
-                r.truncate(100);
 
                 if (r != null) {
                     outputResults(output, qid, r);
@@ -261,6 +299,8 @@ public class QryEval {
                 }
             }
         } catch (IOException ex) {
+            ex.printStackTrace();
+        } catch (Exception ex) {
             ex.printStackTrace();
         } finally {
             input.close();
