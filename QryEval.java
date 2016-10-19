@@ -66,9 +66,7 @@ public class QryEval {
         RetrievalModel model = initializeRetrievalModel (parameters);
 
         //  Perform experiments.
-
-        processQueryFile(parameters.get("queryFilePath"),
-                         parameters.get("trecEvalOutputPath"), model);
+        processQueryFile(parameters, model);
 
         //  Clean up.
 
@@ -173,18 +171,46 @@ public class QryEval {
      *  @param model
      *  @throws IOException Error accessing the Lucene index.
      */
-    static void processQueryFile(String queryFilePath, String outputFilePath,
+    static void processQueryFile(Map<String, String> parameters,
                                  RetrievalModel model)
         throws IOException {
+
+        String queryFilePath = parameters.get("queryFilePath");
+        String outputFilePath = parameters.get("trecEvalOutputPath");
 
         BufferedReader input = null;
         BufferedWriter output = null;
 
+        // Deal with FB parameters (query expansion)
+        Boolean doExpand = Boolean.parseBoolean(
+            parameters.getOrDefault("fb", "false"));
+        int fbDocs = 0;
+        int fbTerms = 0;
+        int fbMu = 0;
+        double fbOrigWeight = 0.0;
+        String fbInitialRankingFile = "";
+        String fbExpansionQueryFile = "";
+        BufferedWriter outputQry = null;
+
+        if (doExpand) {
+            fbDocs = Integer.parseInt(parameters.get("fbDocs"));
+            fbTerms = Integer.parseInt(parameters.get("fbTerms"));
+            fbMu = Integer.parseInt(parameters.get("fbMu"));
+            fbOrigWeight = Double.parseDouble(parameters.get("fbOrigWeight"));
+            fbInitialRankingFile = parameters.get("fbInitialRankingFile");
+            fbExpansionQueryFile = parameters.get("fbExpansionQueryFile");
+        }
+
+        // Begin processing
         try {
             String qLine = null;
 
             input = new BufferedReader(new FileReader(queryFilePath));
             output = new BufferedWriter(new FileWriter(outputFilePath));
+
+            if (doExpand) {
+                outputQry = new BufferedWriter(new FileWriter(fbExpansionQueryFile));
+            }
 
             //  Each pass of the loop processes one query.
 
@@ -206,6 +232,21 @@ public class QryEval {
                 ScoreList r = null;
 
                 r = processQuery(query, model);
+
+                if (doExpand) {
+                    r.sort();
+                    r.truncate(fbDocs);
+
+                    // get expanded query
+                    String expandedQuery = expandQuery(r, fbDocs, fbTerms, fbMu);
+                    String combinedQuery = "#wand(" +
+                        fbOrigWeight + " #and(" + query + ") " +
+                        (1.0 - fbOrigWeight) + " #and(" + expandedQuery + "))";
+                    r = processQuery(combinedQuery, model);
+
+                    outputExpandedQuery(outputQry, qid, expandedQuery);
+                }
+
                 r.sort();
                 r.truncate(100);
 
@@ -219,16 +260,12 @@ public class QryEval {
         } finally {
             input.close();
             output.close();
+            outputQry.close();
         }
     }
 
     /**
      * Print the query results.
-     *
-     * THIS IS NOT THE CORRECT OUTPUT FORMAT. YOU MUST CHANGE THIS METHOD SO
-     * THAT IT OUTPUTS IN THE FORMAT SPECIFIED IN THE HOMEWORK PAGE, WHICH IS:
-     *
-     * QueryID Q0 DocID Rank Score RunID
      *
      * @param queryName
      *          Original query.
@@ -247,6 +284,27 @@ public class QryEval {
                              + result.getDocidScore(i) + "\trunID\n");
             }
         }
+    }
+
+    /**
+     * Generate feedback (expanded queries).
+     *
+     * @return The <queryId, expandedQry> map.
+     * @throws IOException Error accessing the Lucene index.
+     */
+    static String expandQuery(ScoreList result, int fbDocs,
+                              int fbTerms, int fbMu) throws IOException {
+        for (int i = 0; i < fbDocs; i++) {
+        }
+
+        return "What Ever String";
+    }
+
+    /**
+     * Output the expanded query.
+     */
+    static void outputExpandedQuery(BufferedWriter output, String qid, String expandedQuery) throws IOException {
+        output.write(qid + ": " + expandedQuery + "\n");
     }
 
     /**

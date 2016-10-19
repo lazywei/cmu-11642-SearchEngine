@@ -1,0 +1,13 @@
+indexPath=INPUT_DIR/index
+queryFilePath=TEST_DIR/HW3-Train-16.qry
+trecEvalOutputPath=OUTPUT_DIR/HW3-Train-16.teIn
+retrievalAlgorithm=Indri
+Indri:mu=1000
+Indri:lambda=0.7
+fb=true
+fbDocs=10
+fbTerms=10
+fbMu=0
+fbOrigWeight=0.5
+fbExpansionQueryFile=OUTPUT_DIR/HW3-Train-16.qryOut
+fbInitialRankingFile=TEST_DIR/HW3-Train-16.fbRank
