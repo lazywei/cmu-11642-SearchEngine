@@ -305,7 +305,9 @@ public class QryEval {
         } finally {
             input.close();
             output.close();
-            outputQry.close();
+
+            if (outputQry != null)
+                outputQry.close();
         }
     }
 

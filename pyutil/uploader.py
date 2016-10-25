@@ -31,6 +31,9 @@ m = MultipartEncoder(
             'infile': (zipFile, open(zipPath, 'rb'), 'application/zip')}
 )
 
+import ipdb
+ipdb.set_trace()
+
 authFile = os.path.realpath(os.path.join(os.getcwd(), "pyutil/.auth"))
 with open(authFile, "r") as f:
     auth = HTTPBasicAuth(f.readline().strip(), f.readline().strip())
@@ -43,11 +46,11 @@ r = requests.post(
         'Connection': 'keep-alive',
     })
 
-print("\n".join(r.text.split("<br />")))
+# print("\n".join(r.text.split("<br />")))
 
-# pattern = re.compile("(map|P10|P20|P30)\s+all")
-# print("\n".join(filter(lambda x:
-#                        pattern.match(x) or
-#                        "%" in x or
-#                        "grade" in x or
-#                        "Test" in x, r.text.split("<br />"))))
+pattern = re.compile("(map|P10|P20|P30)\s+all")
+print("\n".join(filter(lambda x:
+                       pattern.match(x) or
+                       "%" in x or
+                       "grade" in x or
+                       "Test" in x, r.text.split("<br />"))))

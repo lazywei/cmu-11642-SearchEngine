@@ -32,8 +32,70 @@ run_train: all
 inspect: all
 	java $(CLASS_FLAG) InspectIndex -index INPUT_DIR/index -list-stats
 
-# run_exp: all
-# 	java $(CLASS_FLAG) QryEval params/$(HW_N)/$(HW_N)-Exp-5-4.param
+run_exp1: all
+	echo "." && \
+	java $(CLASS_FLAG) QryEval params/$(HW_N)/$(HW_N)-Exp1-1.param > \
+		logs/$(HW_N)-Exp1-1.log && \
+	echo "." && \
+	java $(CLASS_FLAG) QryEval params/$(HW_N)/$(HW_N)-Exp1-2.param > \
+		logs/$(HW_N)-Exp1-2.log && \
+	echo "." && \
+	java $(CLASS_FLAG) QryEval params/$(HW_N)/$(HW_N)-Exp1-4.param > \
+		logs/$(HW_N)-Exp1-4.log && \
+	echo "." && \
+	java $(CLASS_FLAG) QryEval params/$(HW_N)/$(HW_N)-Exp1-5.param > \
+		logs/$(HW_N)-Exp1-5.log
+
+run_tmp_exp: all
+	echo "." && \
+	java $(CLASS_FLAG) QryEval params/$(HW_N)/$(HW_N)-Exp3-40.param > \
+		logs/$(HW_N)-Exp3-40.log && \
+	echo "." && \
+	java $(CLASS_FLAG) QryEval params/$(HW_N)/$(HW_N)-Exp5-bow.param > \
+		logs/$(HW_N)-Exp5-bow.log && \
+	echo "." && \
+	java $(CLASS_FLAG) QryEval params/$(HW_N)/$(HW_N)-Exp5-sdm.param > \
+		logs/$(HW_N)-Exp5-sdm.log
+
+run_exp4: all
+	java $(CLASS_FLAG) QryEval params/$(HW_N)/$(HW_N)-Exp3-50.param > \
+		logs/$(HW_N)-Exp3-50.log && \
+	java $(CLASS_FLAG) QryEval params/$(HW_N)/$(HW_N)-Exp4-0.param > \
+		logs/$(HW_N)-Exp4-0.log && \
+	java $(CLASS_FLAG) QryEval params/$(HW_N)/$(HW_N)-Exp4-2.param > \
+		logs/$(HW_N)-Exp4-2.log && \
+	java $(CLASS_FLAG) QryEval params/$(HW_N)/$(HW_N)-Exp4-4.param > \
+		logs/$(HW_N)-Exp4-4.log && \
+	java $(CLASS_FLAG) QryEval params/$(HW_N)/$(HW_N)-Exp4-6.param > \
+		logs/$(HW_N)-Exp4-6.log && \
+	java $(CLASS_FLAG) QryEval params/$(HW_N)/$(HW_N)-Exp4-8.param > \
+		logs/$(HW_N)-Exp4-8.log && \
+	java $(CLASS_FLAG) QryEval params/$(HW_N)/$(HW_N)-Exp4-10.param > \
+		logs/$(HW_N)-Exp4-10.log
+
+run_exp3: all
+	java $(CLASS_FLAG) QryEval params/$(HW_N)/$(HW_N)-Exp3-40.param > \
+		logs/$(HW_N)-Exp3-40.log
+
+run_exp2: all
+	echo "." && \
+	java $(CLASS_FLAG) QryEval params/$(HW_N)/$(HW_N)-Exp2-10.param > \
+		logs/$(HW_N)-Exp2-10.log && \
+	echo "." && \
+	java $(CLASS_FLAG) QryEval params/$(HW_N)/$(HW_N)-Exp2-20.param > \
+		logs/$(HW_N)-Exp2-20.log && \
+	echo "." && \
+	java $(CLASS_FLAG) QryEval params/$(HW_N)/$(HW_N)-Exp2-30.param > \
+		logs/$(HW_N)-Exp2-30.log && \
+	echo "." && \
+	java $(CLASS_FLAG) QryEval params/$(HW_N)/$(HW_N)-Exp2-40.param > \
+		logs/$(HW_N)-Exp2-40.log && \
+	echo "." && \
+	java $(CLASS_FLAG) QryEval params/$(HW_N)/$(HW_N)-Exp2-50.param > \
+		logs/$(HW_N)-Exp2-50.log && \
+	echo "." && \
+	java $(CLASS_FLAG) QryEval params/$(HW_N)/$(HW_N)-Exp2-100.param > \
+		logs/$(HW_N)-Exp2-100.log
 
 clean:
 	rm -f *.class ./tests/*.class
