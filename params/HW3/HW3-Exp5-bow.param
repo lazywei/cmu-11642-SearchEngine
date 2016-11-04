@@ -1,0 +1,13 @@
+indexPath=INPUT_DIR/index
+queryFilePath=TEST_DIR/HW3-exp-plain.qry
+trecEvalOutputPath=OUTPUT_DIR/HW3-Exp5-bow.teIn
+retrievalAlgorithm=Indri
+Indri:mu=1000
+Indri:lambda=0.7
+fb=true
+fbDocs=100
+fbTerms=50
+fbMu=0
+fbOrigWeight=0.0
+fbExpansionQueryFile=OUTPUT_DIR/HW3-Exp5-bow.qryOut
+fbInitialRankingFile=TEST_DIR/Indri-Bow.fbRank

@@ -1,0 +1,4 @@
+indexPath=INPUT_DIR/index
+queryFilePath=TEST_DIR/HW3-exp-and.qry
+trecEvalOutputPath=OUTPUT_DIR/HW3-Exp1-1.teIn
+retrievalAlgorithm=RankedBoolean
