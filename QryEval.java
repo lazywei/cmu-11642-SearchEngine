@@ -33,6 +33,7 @@ public class QryEval {
     private static final String[] TEXT_FIELDS =
     { "body", "title", "url", "inlink" };
 
+    private static Map<String, String> parameters;
 
     //  --------------- Methods ---------------------------------------
 
@@ -58,16 +59,21 @@ public class QryEval {
             throw new IllegalArgumentException (USAGE);
         }
 
-        Map<String, String> parameters = readParameterFile (args[0]);
+        initParameters(args[0]);
 
         //  Open the index and initialize the retrieval model.
 
         System.out.println(parameters);
         Idx.open (parameters.get ("indexPath"));
-        RetrievalModel model = initializeRetrievalModel (parameters);
+        RetrievalModel model = initializeRetrievalModel();
+
+        // Extract Features
+        generateFeatures();
+
+        // Call SVM
 
         //  Perform experiments.
-        processQueryFile(parameters, model);
+        // processQueryFile(model);
 
         //  Clean up.
 
@@ -81,7 +87,7 @@ public class QryEval {
      *  @return The initialized retrieval model
      *  @throws IOException Error accessing the Lucene index.
      */
-    private static RetrievalModel initializeRetrievalModel (Map<String, String> parameters)
+    private static RetrievalModel initializeRetrievalModel ()
         throws IOException {
 
         RetrievalModel model = null;
@@ -202,8 +208,7 @@ public class QryEval {
      *  @param model
      *  @throws IOException Error accessing the Lucene index.
      */
-    static void processQueryFile(Map<String, String> parameters,
-                                 RetrievalModel model)
+    static void processQueryFile(RetrievalModel model)
         throws IOException {
 
         String queryFilePath = parameters.get("queryFilePath");
@@ -414,10 +419,10 @@ public class QryEval {
      *  them.
      *  @return The parameters, in <key, value> format.
      */
-    private static Map<String, String> readParameterFile (String parameterFileName)
+    private static void initParameters(String parameterFileName)
         throws IOException {
 
-        Map<String, String> parameters = new HashMap<String, String>();
+        parameters = new HashMap<String, String>();
 
         File parameterFile = new File (parameterFileName);
 
@@ -444,7 +449,107 @@ public class QryEval {
                 ("Required parameters were missing from the parameter file.");
         }
 
-        return parameters;
+        return;
     }
 
+    private static void generateFeatures() throws IOException {
+        FileReader in = new FileReader(
+            parameters.get("letor:trainingQueryFile"));
+        BufferedReader br = new BufferedReader(in);
+
+        Map<String, Double> pageRank = readPageRank();
+        Map<String, List<String>> relJudges = readRelJudges();
+        List<String> featureVectors = new ArrayList<String>();
+
+        String line;
+        while ((line = br.readLine()) != null) {
+            int d = line.indexOf(':');
+
+            if (d < 0) {
+                throw new IllegalArgumentException
+                    ("Syntax error:  Missing ':' in query line.");
+            }
+
+            String qid = line.substring(0, d);
+            String query = line.substring(d + 1);
+
+            FeatureVector minFV = null;
+            FeatureVector maxFV = null;
+            List<FeatureVector> fvList = new ArrayList<FeatureVector>();
+
+            for (String qrel: relJudges.get(qid)) {
+                Integer label = Integer.parseInt(qrel.split("\\s")[0]);
+                ArrayList<Double> features = new ArrayList<Double>();
+                features.add(0.12345);
+
+                if (minFV == null) {
+                    FeatureVector fv = new FeatureVector(label, qid, features);
+                    minFV = new FeatureVector(-1, "", new ArrayList<Double>(features));
+                    maxFV = new FeatureVector(-1, "", new ArrayList<Double>(features));
+                } else {
+                    FeatureVector fv = new FeatureVector(label, qid, features, minFV, maxFV);
+                    fvList.add(fv);
+                }
+            }
+
+            // normalize
+            for (FeatureVector fv: fvList) {
+                fv.normalize(minFV, maxFV);
+            }
+
+
+        }
+    }
+
+    private static Map<String, Double> readPageRank()
+        throws IOException {
+        Map<String, Double> pageRank = new HashMap<String, Double>();
+        FileReader in = new FileReader(
+            parameters.get("letor:pageRankFile"));
+        BufferedReader br = new BufferedReader(in);
+
+        String line;
+        while ((line = br.readLine()) != null) {
+            String[] vals = line.split("\\s");
+            Double pr = Double.parseDouble(vals[1]);
+
+            pageRank.put(vals[0], pr);
+        }
+
+        return pageRank;
+    }
+
+    private static Map<String, List<String>> readRelJudges()
+        throws IOException {
+        Map<String, List<String>> relJudges =
+            new HashMap<String, List<String>>();
+
+        FileReader in = new FileReader(
+            parameters.get("letor:trainingQrelsFile"));
+        BufferedReader br = new BufferedReader(in);
+
+        String line;
+        while ((line = br.readLine()) != null) {
+            String qid = line.split("\\s")[0];
+
+            if (!relJudges.containsKey(qid))
+                relJudges.put(qid, new ArrayList<String>());
+            relJudges.get(qid).add(line);
+        }
+
+        return relJudges;
+    }
+
+    private static void outputFeatureVectors(List<FeatureVector> fvList)
+        throws IOException {
+        BufferedWriter output = new BufferedWriter(
+            new FileWriter(parameters.get("letor:trainingFeatureVectorsFile")));
+        if (fvList.size() < 1) {
+            output.write("NONE DUMMY ERROR!\n");
+        } else {
+            for (int i = 0; i < fvList.size(); i++) {
+                output.write(fvList.get(i).toString() + "\n");
+            }
+        }
+    }
 }
