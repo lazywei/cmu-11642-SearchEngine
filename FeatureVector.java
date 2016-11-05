@@ -7,33 +7,20 @@ import java.util.*;
 
 public class FeatureVector {
 
+    public static int nFeatures = 18;
+
     private ArrayList<Double> features;
     private Integer label;
     private String qid;
 
-    public FeatureVector(Integer revLabel, String qryId, ArrayList<Double> fs) {
-        qid = qryId;
+    public FeatureVector(Integer revLabel, String qryId) {
         label = revLabel;
-        features = fs;
-    }
-
-    public FeatureVector(Integer revLabel, String qryId, ArrayList<Double> fs,
-                         FeatureVector minFV, FeatureVector maxFV) {
         qid = qryId;
-        label = revLabel;
-        features = fs;
 
-        for (int i = 0; i < fs.size(); i++) {
-            if (fs.get(i).isNaN())
-                continue;
+        features = new ArrayList<Double>(nFeatures);
 
-            if (minFV.get(i).isNaN() || fs.get(i) <= minFV.get(i)) {
-                minFV.set(i, fs.get(i));
-            }
-
-            if (maxFV.get(i).isNaN() || fs.get(i) >= maxFV.get(i)) {
-                maxFV.set(i, fs.get(i));
-            }
+        for (int i = 0; i < nFeatures; i++) {
+            features.add(Double.NaN);
         }
     }
 
@@ -54,9 +41,13 @@ public class FeatureVector {
     public String toString() {
         String row = null;
 
-        row = String.format("%d qid:%d ", label, qid);
+        row = String.format("%d qid:%s", label, qid);
 
-        row += features.get(0);
+        for (int i = 0; i < nFeatures; i++) {
+            if (get(i).isNaN())
+                continue;
+            row += " " + features.get(i);
+        }
 
         return row;
     }
@@ -67,5 +58,18 @@ public class FeatureVector {
 
     public void set(int i, Double val) {
         features.set(i, val);
+    }
+
+    public void setWithMinMax(int i, Double val,
+                              FeatureVector minFV, FeatureVector maxFV) {
+        set(i, val);
+
+        if (minFV.get(i).isNaN() || val <= minFV.get(i)) {
+            minFV.set(i, val);
+        }
+
+        if (maxFV.get(i).isNaN() || val >= maxFV.get(i)) {
+            maxFV.set(i, val);
+        }
     }
 }

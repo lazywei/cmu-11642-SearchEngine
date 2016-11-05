@@ -106,6 +106,11 @@ public class QryEval {
             model = new RetrievalModelIndri(
                 Integer.parseInt(parameters.get("Indri:mu")),
                 Double.parseDouble(parameters.get("Indri:lambda")));
+        } else if (modelString.equals("letor")) {
+            model = new RetrievalModelBM25(
+                Double.parseDouble(parameters.get("BM25:k_1")),
+                Double.parseDouble(parameters.get("BM25:b")),
+                Double.parseDouble(parameters.get("BM25:k_3")));
         } else {
             throw new IllegalArgumentException
                 ("Unknown retrieval model " + parameters.get("retrievalAlgorithm"));
@@ -473,23 +478,20 @@ public class QryEval {
             String qid = line.substring(0, d);
             String query = line.substring(d + 1);
 
-            FeatureVector minFV = null;
-            FeatureVector maxFV = null;
+            FeatureVector minFV = new FeatureVector(-1, "minFV");
+            FeatureVector maxFV = new FeatureVector(-1, "maxFV");
             List<FeatureVector> fvList = new ArrayList<FeatureVector>();
 
             for (String qrel: relJudges.get(qid)) {
-                Integer label = Integer.parseInt(qrel.split("\\s")[0]);
-                ArrayList<Double> features = new ArrayList<Double>();
-                features.add(0.12345);
+                Integer label = Integer.parseInt(qrel.split("\\s")[3]);
 
-                if (minFV == null) {
-                    FeatureVector fv = new FeatureVector(label, qid, features);
-                    minFV = new FeatureVector(-1, "", new ArrayList<Double>(features));
-                    maxFV = new FeatureVector(-1, "", new ArrayList<Double>(features));
-                } else {
-                    FeatureVector fv = new FeatureVector(label, qid, features, minFV, maxFV);
-                    fvList.add(fv);
+                FeatureVector fv = new FeatureVector(label, qid);
+
+                for (int i = 0; i < FeatureVector.nFeatures; i++) {
+                    fv.setWithMinMax(i, (double) i*label, minFV, maxFV);
                 }
+
+                fvList.add(fv);
             }
 
             // normalize
@@ -497,7 +499,7 @@ public class QryEval {
                 fv.normalize(minFV, maxFV);
             }
 
-
+            outputFeatureVectors(fvList);
         }
     }
 
@@ -551,5 +553,7 @@ public class QryEval {
                 output.write(fvList.get(i).toString() + "\n");
             }
         }
+
+        output.close();
     }
 }
