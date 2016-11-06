@@ -36,9 +36,9 @@ public class FeatureVector {
             Double minVal = minFV.get(i);
             Double maxVal = maxFV.get(i);
 
-            if (minVal.isNaN() || minVal == maxVal) {
+            if (minVal.isNaN()) {
                 features.set(i, Double.NaN);
-            } else if (origVal.isNaN()) {
+            } else if (minVal == maxVal || origVal.isNaN()) {
                 features.set(i, 0.0);
             } else {
                 features.set(i, (origVal - minVal) / (maxVal - minVal));

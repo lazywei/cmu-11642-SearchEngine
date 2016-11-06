@@ -509,20 +509,23 @@ public class QryEval {
         List<String> featureVectors = new ArrayList<String>();
 
         Set<Integer> ignoreFeatures = new HashSet<Integer>();
-        ignoreFeatures.add(2);
-        ignoreFeatures.add(3);
 
         FeatureVector minFV = new FeatureVector(-1, "minFV", "minFV");
         FeatureVector maxFV = new FeatureVector(-1, "maxFV", "maxFV");
         List<FeatureVector> fvList = new ArrayList<FeatureVector>();
 
         for (RelJudge relJudge: relJudges) {
-            int docid = Idx.getInternalDocid(relJudge.extDocid);
+            Integer docid = Idx.getInternalDocid(relJudge.extDocid);
+
+            if (docid == null)
+                continue;
 
             FeatureVector fv = new FeatureVector(relJudge.label, qid, relJudge.extDocid);
 
             // f1: spamScore
-            fv.setWithMinMax(1, Double.parseDouble(Idx.getAttribute("score", docid)), minFV, maxFV);
+            fv.setWithMinMax(
+                1, Double.parseDouble(Idx.getAttribute("score", docid)),
+                minFV, maxFV);
 
             // f4: pagerank
             fv.setWithMinMax(
