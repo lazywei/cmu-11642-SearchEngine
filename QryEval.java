@@ -60,6 +60,7 @@ public class QryEval {
         }
 
         initParameters(args[0]);
+        boolean isLetor = parameters.get("retrievalAlgorithm").equals("letor");
 
         //  Open the index and initialize the retrieval model.
 
@@ -68,9 +69,14 @@ public class QryEval {
         RetrievalModel model = initializeRetrievalModel();
 
         // Extract Features
-        generateFeatures();
+        if (isLetor) {
+            Map<String, Double> pageRank = readPageRank();
+            Map<String, List<RelJudge>> relJudges = readRelJudges();
+            generateFeatures(pageRank, relJudges, true);
+        }
 
         // Call SVM
+        exeSVM(true);
 
         //  Perform experiments.
         // processQueryFile(model);
@@ -457,14 +463,30 @@ public class QryEval {
         return;
     }
 
-    private static void generateFeatures() throws IOException {
-        FileReader in = new FileReader(
-            parameters.get("letor:trainingQueryFile"));
-        BufferedReader br = new BufferedReader(in);
+    private static void generateFeatures(Map<String, Double> pageRank,
+                                         Map<String, List<RelJudge>> relJudges,
+                                         boolean isTrain) throws IOException, Exception {
 
-        Map<String, Double> pageRank = readPageRank();
-        Map<String, List<String>> relJudges = readRelJudges();
+        BufferedReader br = null;
+        BufferedWriter output = null;
+
+        if (isTrain) {
+            br = new BufferedReader(
+                new FileReader(parameters.get("letor:trainingQueryFile")));
+            output = new BufferedWriter(
+                new FileWriter(parameters.get("letor:trainingFeatureVectorsFile")));
+        } else {
+            br = new BufferedReader(
+                new FileReader(parameters.get("queryFilePath")));
+            output = new BufferedWriter(
+                new FileWriter(parameters.get("letor:testingFeatureVectorsFile")));
+        }
+
         List<String> featureVectors = new ArrayList<String>();
+
+        Set<Integer> ignoreFeatures = new HashSet<Integer>();
+        ignoreFeatures.add(2);
+        ignoreFeatures.add(3);
 
         String line;
         while ((line = br.readLine()) != null) {
@@ -478,18 +500,20 @@ public class QryEval {
             String qid = line.substring(0, d);
             String query = line.substring(d + 1);
 
-            FeatureVector minFV = new FeatureVector(-1, "minFV");
-            FeatureVector maxFV = new FeatureVector(-1, "maxFV");
+            FeatureVector minFV = new FeatureVector(-1, "minFV", "minFV");
+            FeatureVector maxFV = new FeatureVector(-1, "maxFV", "maxFV");
             List<FeatureVector> fvList = new ArrayList<FeatureVector>();
 
-            for (String qrel: relJudges.get(qid)) {
-                Integer label = Integer.parseInt(qrel.split("\\s")[3]);
+            for (RelJudge relJudge: relJudges.get(qid)) {
+                int docid = Idx.getInternalDocid(relJudge.extDocid);
 
-                FeatureVector fv = new FeatureVector(label, qid);
+                FeatureVector fv = new FeatureVector(relJudge.label, qid, relJudge.extDocid);
 
-                for (int i = 0; i < FeatureVector.nFeatures; i++) {
-                    fv.setWithMinMax(i, (double) i*label, minFV, maxFV);
-                }
+                // f1: spamScore
+                fv.setWithMinMax(1, Double.parseDouble(Idx.getAttribute("score", docid)), minFV, maxFV);
+
+                // f4: pagerank
+                fv.setWithMinMax(4, pageRank.get(relJudge.extDocid), minFV, maxFV);
 
                 fvList.add(fv);
             }
@@ -499,8 +523,9 @@ public class QryEval {
                 fv.normalize(minFV, maxFV);
             }
 
-            outputFeatureVectors(fvList);
+            outputFeatureVectors(fvList, output);
         }
+        output.close();
     }
 
     private static Map<String, Double> readPageRank()
@@ -521,10 +546,10 @@ public class QryEval {
         return pageRank;
     }
 
-    private static Map<String, List<String>> readRelJudges()
+    private static Map<String, List<RelJudge>> readRelJudges()
         throws IOException {
-        Map<String, List<String>> relJudges =
-            new HashMap<String, List<String>>();
+        Map<String, List<RelJudge>> relJudges =
+            new HashMap<String, List<RelJudge>>();
 
         FileReader in = new FileReader(
             parameters.get("letor:trainingQrelsFile"));
@@ -533,19 +558,20 @@ public class QryEval {
         String line;
         while ((line = br.readLine()) != null) {
             String qid = line.split("\\s")[0];
+            String extDocid = line.split("\\s")[2];
+            Integer label = Integer.parseInt(line.split("\\s")[3]);
 
             if (!relJudges.containsKey(qid))
-                relJudges.put(qid, new ArrayList<String>());
-            relJudges.get(qid).add(line);
+                relJudges.put(qid, new ArrayList<RelJudge>());
+
+            relJudges.get(qid).add(new RelJudge(qid, extDocid, label));
         }
 
         return relJudges;
     }
 
-    private static void outputFeatureVectors(List<FeatureVector> fvList)
+    private static void outputFeatureVectors(List<FeatureVector> fvList, BufferedWriter output)
         throws IOException {
-        BufferedWriter output = new BufferedWriter(
-            new FileWriter(parameters.get("letor:trainingFeatureVectorsFile")));
         if (fvList.size() < 1) {
             output.write("NONE DUMMY ERROR!\n");
         } else {
@@ -553,7 +579,65 @@ public class QryEval {
                 output.write(fvList.get(i).toString() + "\n");
             }
         }
+    }
 
-        output.close();
+    private static void exeSVM(boolean isTrain) throws Exception {
+        // runs svm_rank_learn from within Java to train the model
+        // execPath is the location of the svm_rank_learn utility, 
+        // which is specified by letor:svmRankLearnPath in the parameter file.
+        // FEAT_GEN.c is the value of the letor:c parameter.
+
+        String[] cmdOpts = null;
+        if (isTrain) {
+            cmdOpts = new String[] {
+                parameters.get("letor:svmRankLearnPath"),
+                "-c", parameters.get("letor:svmRankParamC"),
+                parameters.get("letor:trainingFeatureVectorsFile"),
+                parameters.get("letor:svmRankModelFile") };
+        } else {
+            cmdOpts = new String[] {
+                parameters.get("letor:svmRankClassifyPath"),
+                parameters.get("letor:testingFeatureVectorsFile"),
+                parameters.get("letor:svmRankModelFile"),
+                parameters.get("letor:testingDocumentScores") };
+        }
+
+        Process cmdProc = Runtime.getRuntime().exec(cmdOpts);
+
+        // The stdout/stderr consuming code MUST be included.
+        // It prevents the OS from running out of output buffer space and stalling.
+
+        // consume stdout and print it out for debugging purposes
+        BufferedReader stdoutReader = new BufferedReader(
+            new InputStreamReader(cmdProc.getInputStream()));
+        String line;
+        while ((line = stdoutReader.readLine()) != null) {
+            System.out.println(line);
+        }
+        // consume stderr and print it for debugging purposes
+        BufferedReader stderrReader = new BufferedReader(
+            new InputStreamReader(cmdProc.getErrorStream()));
+        while ((line = stderrReader.readLine()) != null) {
+            System.out.println(line);
+        }
+
+        // get the return value from the executable. 0 means success, non-zero 
+        // indicates a problem
+        int retValue = cmdProc.waitFor();
+        if (retValue != 0) {
+            throw new Exception("SVM Rank crashed.");
+        }
+    }
+}
+
+class RelJudge {
+    public String qid;
+    public String extDocid;
+    public Integer label;
+
+    public RelJudge(String qid, String extDocid, Integer label) {
+        this.qid = qid;
+        this.extDocid = extDocid;
+        this.label = label;
     }
 }

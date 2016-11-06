@@ -12,27 +12,35 @@ public class FeatureVector {
     private ArrayList<Double> features;
     private Integer label;
     private String qid;
+    private String extDocid;
 
-    public FeatureVector(Integer revLabel, String qryId) {
-        label = revLabel;
-        qid = qryId;
+    public FeatureVector(Integer label, String qid, String extDocid) {
+        this.label = label;
+        this.qid = qid;
+        this.extDocid = extDocid;
 
-        features = new ArrayList<Double>(nFeatures);
+        this.features = new ArrayList<Double>(nFeatures);
 
-        for (int i = 0; i < nFeatures; i++) {
-            features.add(Double.NaN);
+        // first features is dummy, not used. This is for easier indexing
+        for (int i = 0; i <= nFeatures; i++) {
+            this.features.add(Double.NaN);
         }
     }
 
     public void normalize(FeatureVector minFV, FeatureVector maxFV) {
-        for (int i = 0; i < features.size(); i++) {
-            Double origVal = features.get(i);
+        for (int i = 1; i <= nFeatures; i++) {
+            // if (ignoreFeatures.contains(i))
+            //     continue;
 
-            if (origVal.isNaN()) {
+            Double origVal = features.get(i);
+            Double minVal = minFV.get(i);
+            Double maxVal = maxFV.get(i);
+
+            if (minVal.isNaN() || minVal == maxVal) {
+                features.set(i, Double.NaN);
+            } else if (origVal.isNaN()) {
                 features.set(i, 0.0);
             } else {
-                Double minVal = minFV.get(i);
-                Double maxVal = maxFV.get(i);
                 features.set(i, (origVal - minVal) / (maxVal - minVal));
             }
         }
@@ -43,11 +51,13 @@ public class FeatureVector {
 
         row = String.format("%d qid:%s", label, qid);
 
-        for (int i = 0; i < nFeatures; i++) {
+        for (int i = 1; i <= nFeatures; i++) {
             if (get(i).isNaN())
                 continue;
-            row += " " + features.get(i);
+            row += String.format(" %d:%f", i, features.get(i));
         }
+
+        row += " # " + extDocid;
 
         return row;
     }
