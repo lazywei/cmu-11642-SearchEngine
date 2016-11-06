@@ -34,6 +34,9 @@ public class QryEval {
     { "body", "title", "url", "inlink" };
 
     private static Map<String, String> parameters;
+    private static Boolean isLetor = false;
+    private static Boolean doExpand = false;
+    private static Map<String, Double> pageRank = null;
 
     //  --------------- Methods ---------------------------------------
 
@@ -60,7 +63,8 @@ public class QryEval {
         }
 
         initParameters(args[0]);
-        boolean isLetor = parameters.get("retrievalAlgorithm").equals("letor");
+        isLetor = parameters.get("retrievalAlgorithm").equals("letor");
+        doExpand = Boolean.parseBoolean(parameters.getOrDefault("fb", "false"));
 
         //  Open the index and initialize the retrieval model.
 
@@ -70,16 +74,38 @@ public class QryEval {
 
         // Extract Features
         if (isLetor) {
-            Map<String, Double> pageRank = readPageRank();
+            pageRank = readPageRank();
+
             Map<String, List<RelJudge>> relJudges = readRelJudges();
-            generateFeatures(pageRank, relJudges, true);
+
+            BufferedReader inputReader = new BufferedReader(
+                new FileReader(parameters.get("letor:trainingQueryFile")));
+            BufferedWriter outputWriter = new BufferedWriter(
+                new FileWriter(parameters.get("letor:trainingFeatureVectorsFile")));
+
+            String trainQueryLine;
+            while ((trainQueryLine = inputReader.readLine()) != null) {
+                int d = trainQueryLine.indexOf(':');
+
+                if (d < 0) {
+                    throw new IllegalArgumentException
+                        ("Syntax error:  Missing ':' in query line.");
+                }
+
+                String qid = trainQueryLine.substring(0, d);
+                String query = trainQueryLine.substring(d + 1);
+
+                generateFeatures(qid, query, relJudges.get(qid), outputWriter);
+            }
+
+            outputWriter.close();
         }
 
         // Call SVM
         exeSVM(true);
 
-        //  Perform experiments.
-        // processQueryFile(model);
+        // Perform experiments.
+        processQueryFile(model);
 
         //  Clean up.
 
@@ -229,8 +255,6 @@ public class QryEval {
         BufferedWriter output = null;
 
         // Deal with FB parameters (query expansion)
-        Boolean doExpand = Boolean.parseBoolean(
-            parameters.getOrDefault("fb", "false"));
         int fbDocs = 0;
         int fbTerms = 0;
         int fbMu = 0;
@@ -262,6 +286,7 @@ public class QryEval {
                     prerankedScoreLists = loadRanking(fbInitialRankingFile);
                 }
             }
+
 
             //  Each pass of the loop processes one query.
 
@@ -307,6 +332,19 @@ public class QryEval {
                     r = processQuery(query, model);
                     r.sort();
                     r.truncate(100);
+                }
+
+                if (isLetor) {
+                    BufferedWriter letorOutput = new BufferedWriter(
+                            new FileWriter(parameters.get("letor:testingFeatureVectorsFile")));
+                    List<RelJudge> relJudges = RelJudge.fromScoreList(qid, r);
+                    generateFeatures(qid, query, relJudges, letorOutput);
+                    letorOutput.close();
+
+                    exeSVM(false);
+
+                    reRank(r);
+                    r.sort();
                 }
 
                 if (r != null) {
@@ -463,24 +501,10 @@ public class QryEval {
         return;
     }
 
-    private static void generateFeatures(Map<String, Double> pageRank,
-                                         Map<String, List<RelJudge>> relJudges,
-                                         boolean isTrain) throws IOException, Exception {
-
-        BufferedReader br = null;
-        BufferedWriter output = null;
-
-        if (isTrain) {
-            br = new BufferedReader(
-                new FileReader(parameters.get("letor:trainingQueryFile")));
-            output = new BufferedWriter(
-                new FileWriter(parameters.get("letor:trainingFeatureVectorsFile")));
-        } else {
-            br = new BufferedReader(
-                new FileReader(parameters.get("queryFilePath")));
-            output = new BufferedWriter(
-                new FileWriter(parameters.get("letor:testingFeatureVectorsFile")));
-        }
+    private static void generateFeatures(String qid, String qryStr,
+                                         List<RelJudge> relJudges,
+                                         BufferedWriter outputWriter)
+        throws IOException, Exception {
 
         List<String> featureVectors = new ArrayList<String>();
 
@@ -488,52 +512,37 @@ public class QryEval {
         ignoreFeatures.add(2);
         ignoreFeatures.add(3);
 
-        String line;
-        while ((line = br.readLine()) != null) {
-            int d = line.indexOf(':');
+        FeatureVector minFV = new FeatureVector(-1, "minFV", "minFV");
+        FeatureVector maxFV = new FeatureVector(-1, "maxFV", "maxFV");
+        List<FeatureVector> fvList = new ArrayList<FeatureVector>();
 
-            if (d < 0) {
-                throw new IllegalArgumentException
-                    ("Syntax error:  Missing ':' in query line.");
-            }
+        for (RelJudge relJudge: relJudges) {
+            int docid = Idx.getInternalDocid(relJudge.extDocid);
 
-            String qid = line.substring(0, d);
-            String query = line.substring(d + 1);
+            FeatureVector fv = new FeatureVector(relJudge.label, qid, relJudge.extDocid);
 
-            FeatureVector minFV = new FeatureVector(-1, "minFV", "minFV");
-            FeatureVector maxFV = new FeatureVector(-1, "maxFV", "maxFV");
-            List<FeatureVector> fvList = new ArrayList<FeatureVector>();
+            // f1: spamScore
+            fv.setWithMinMax(1, Double.parseDouble(Idx.getAttribute("score", docid)), minFV, maxFV);
 
-            for (RelJudge relJudge: relJudges.get(qid)) {
-                int docid = Idx.getInternalDocid(relJudge.extDocid);
+            // f4: pagerank
+            fv.setWithMinMax(4, pageRank.get(relJudge.extDocid), minFV, maxFV);
 
-                FeatureVector fv = new FeatureVector(relJudge.label, qid, relJudge.extDocid);
-
-                // f1: spamScore
-                fv.setWithMinMax(1, Double.parseDouble(Idx.getAttribute("score", docid)), minFV, maxFV);
-
-                // f4: pagerank
-                fv.setWithMinMax(4, pageRank.get(relJudge.extDocid), minFV, maxFV);
-
-                fvList.add(fv);
-            }
-
-            // normalize
-            for (FeatureVector fv: fvList) {
-                fv.normalize(minFV, maxFV);
-            }
-
-            outputFeatureVectors(fvList, output);
+            fvList.add(fv);
         }
-        output.close();
+
+        // normalize
+        for (FeatureVector fv: fvList) {
+            fv.normalize(minFV, maxFV);
+        }
+
+        outputFeatureVectors(fvList, outputWriter);
     }
 
     private static Map<String, Double> readPageRank()
         throws IOException {
         Map<String, Double> pageRank = new HashMap<String, Double>();
-        FileReader in = new FileReader(
-            parameters.get("letor:pageRankFile"));
-        BufferedReader br = new BufferedReader(in);
+        BufferedReader br = new BufferedReader(
+            new FileReader(parameters.get("letor:pageRankFile")));
 
         String line;
         while ((line = br.readLine()) != null) {
@@ -628,6 +637,22 @@ public class QryEval {
             throw new Exception("SVM Rank crashed.");
         }
     }
+
+    private static void reRank(ScoreList r) throws IOException {
+        BufferedReader in = new BufferedReader(
+            new FileReader(parameters.get("letor:testingDocumentScores")));
+
+        String line;
+
+        int i = 0;
+        while((line = in.readLine()) != null) {
+            Double svmScore = Double.parseDouble(line);
+            r.setDocidScore(i, svmScore);
+            i += 1;
+        }
+
+        in.close();
+    }
 }
 
 class RelJudge {
@@ -639,5 +664,15 @@ class RelJudge {
         this.qid = qid;
         this.extDocid = extDocid;
         this.label = label;
+    }
+
+    public static List<RelJudge> fromScoreList(String qid, ScoreList r) {
+        List<RelJudge> relJudges = new ArrayList<RelJudge>();
+
+        for (int i = 0; i < r.size(); i++) {
+            relJudges.add(new RelJudge(qid, r.getExternalId(i), 0));
+        }
+
+        return relJudges;
     }
 }

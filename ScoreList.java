@@ -54,6 +54,15 @@ public class ScoreList {
     }
 
     /**
+     *  Get the internal docid of the n'th entry.
+     *  @param n The index of the requested document.
+     *  @return The internal document id.
+     */
+    public String getExternalId(int n) {
+        return this.scores.get(n).externalId;
+    }
+
+    /**
      *  Get the score of the n'th entry.
      *  @param n The index of the requested document score.
      *  @return The document's score.
