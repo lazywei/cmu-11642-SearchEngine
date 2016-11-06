@@ -71,7 +71,12 @@ public class FeatureVector {
     }
 
     public void setWithMinMax(int i, Double val,
-                              FeatureVector minFV, FeatureVector maxFV) {
+                              FeatureVector minFV, FeatureVector maxFV,
+                              Set<Integer> ignoreFeatures) {
+
+        if (ignoreFeatures.contains(i))
+            return;
+
         set(i, val);
 
         if (minFV.get(i).isNaN() || val <= minFV.get(i)) {
@@ -125,6 +130,42 @@ public class FeatureVector {
 
     // f5
     public static Double bm25(TermVector tv, String[] qryStems)
+        throws IOException {
+        double score = 0.0;
+
+        double k1 = 1.2;
+        double b = 0.75;
+        // double k3 = 0.0;
+        double nDocs = (double) Idx.getNumDocs();
+        double doclen = (double) tv.positionsLength();
+        double avgDoclen =
+            ((double) Idx.getSumOfFieldLengths(tv.fieldName) /
+             (double) Idx.getDocCount(tv.fieldName));
+
+        if (doclen == 0.0) {
+            return Double.NaN;
+        }
+
+        for (String qryStem: qryStems) {
+            int stemIdx = tv.indexOfStem(qryStem);
+            if (stemIdx > 0) {
+                double df = (double) tv.stemDf(stemIdx);
+                double tf = (double) tv.stemFreq(stemIdx);
+
+                double rjs = Math.max(0, Math.log((nDocs - df + 0.5) /
+                                                  (df + 0.5)));
+                double tfTerm = tf / (tf + k1 * ((1 - b) + b * doclen / avgDoclen));
+
+                score += rjs * tfTerm;
+
+            }
+        }
+
+        return score;
+    }
+
+    // f6
+    public static Double indri(TermVector tv, String[] qryStems)
         throws IOException {
         double score = 0.0;
 

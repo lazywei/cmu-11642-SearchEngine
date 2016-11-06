@@ -509,6 +509,12 @@ public class QryEval {
         List<String> featureVectors = new ArrayList<String>();
 
         Set<Integer> ignoreFeatures = new HashSet<Integer>();
+        if (parameters.containsKey("letor:featureDisable")) {
+            String feaDis = parameters.get("letor:featureDisable");
+            for (String fid : feaDis.split(",")) {
+                ignoreFeatures.add(Integer.parseInt(fid));
+            }
+        }
 
         String[] qryStems = QryParser.tokenizeString(qryStr);
 
@@ -534,57 +540,83 @@ public class QryEval {
 
             // f1: spamScore
             fv.setWithMinMax(
-                1, FeatureVector.spamScore(docid), minFV, maxFV);
+                1, FeatureVector.spamScore(docid),
+                minFV, maxFV, ignoreFeatures);
 
             // f2: Url depth (# of /)
             fv.setWithMinMax(
-                2, FeatureVector.urlDepth(docid), minFV, maxFV);
+                2, FeatureVector.urlDepth(docid),
+                minFV, maxFV, ignoreFeatures);
 
             // f3: FromWikipedia score
             fv.setWithMinMax(
-                3, FeatureVector.fromWikiScore(docid), minFV, maxFV);
+                3, FeatureVector.fromWikiScore(docid),
+                minFV, maxFV, ignoreFeatures);
 
             // f4: pagerank
             fv.setWithMinMax(
                 4, FeatureVector.pr(pageRank, relJudge.extDocid),
-                minFV, maxFV);
+                minFV, maxFV, ignoreFeatures);
 
             // f5: BM25 Body
             fv.setWithMinMax(
                 5, FeatureVector.bm25(tvBody, qryStems),
-                minFV, maxFV);
+                minFV, maxFV, ignoreFeatures);
+
+            // f6: Indri Body
+            fv.setWithMinMax(
+                6, FeatureVector.indri(tvBody, qryStems),
+                minFV, maxFV, ignoreFeatures);
 
             // f7: Overlap Body
             fv.setWithMinMax(
                 7, FeatureVector.overlap(tvBody, qryStems),
-                minFV, maxFV);
+                minFV, maxFV, ignoreFeatures);
 
             // f8: BM25 Title
             fv.setWithMinMax(
-                8, FeatureVector.bm25(tvTitle, qryStems), minFV, maxFV);
+                8, FeatureVector.bm25(tvTitle, qryStems),
+                minFV, maxFV, ignoreFeatures);
+
+            // f9: Indri Title
+            fv.setWithMinMax(
+                9, FeatureVector.indri(tvTitle, qryStems),
+                minFV, maxFV, ignoreFeatures);
 
             // f10: Overlap Title
             fv.setWithMinMax(
                 10, FeatureVector.overlap(tvTitle, qryStems),
-                minFV, maxFV);
+                minFV, maxFV, ignoreFeatures);
 
             // f11: BM25 Url
             fv.setWithMinMax(
-                11, FeatureVector.bm25(tvUrl, qryStems), minFV, maxFV);
+                11, FeatureVector.bm25(tvUrl, qryStems),
+                minFV, maxFV, ignoreFeatures);
+
+            // f12: Indri Url
+            fv.setWithMinMax(
+                12, FeatureVector.indri(tvUrl, qryStems),
+                minFV, maxFV, ignoreFeatures);
 
             // f13: Overlap Url
             fv.setWithMinMax(
                 13, FeatureVector.overlap(tvUrl, qryStems),
-                minFV, maxFV);
+                minFV, maxFV, ignoreFeatures);
 
             // f14: BM25 Inlink
             fv.setWithMinMax(
-                14, FeatureVector.bm25(tvInlink, qryStems), minFV, maxFV);
+                14, FeatureVector.bm25(tvInlink, qryStems),
+                minFV, maxFV, ignoreFeatures);
+
+            // f15: Indri Inlink
+            fv.setWithMinMax(
+                15, FeatureVector.indri(tvInlink, qryStems),
+                minFV, maxFV, ignoreFeatures);
 
             // f16: Overlap Inlink
             fv.setWithMinMax(
                 16, FeatureVector.overlap(tvInlink, qryStems),
-                minFV, maxFV);
+                minFV, maxFV, ignoreFeatures);
 
             fvList.add(fv);
         }
