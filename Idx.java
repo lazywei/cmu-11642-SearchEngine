@@ -92,12 +92,12 @@ public class Idx {
     /**
      * Get the internal document id for a document specified by its
      * external id, e.g. clueweb09-enwp00-88-09710. If no such document
-     * exists, return null.
+     * exists, throw an exception.
      * @param externalId The external docid in the Lucene index.
      * @return iternal docid.
      * @throws Exception Could not read the internal document id from the index.
      */
-    public static Integer getInternalDocid(String externalId)
+    public static int getInternalDocid(String externalId)
         throws Exception {
 
         Query q = new TermQuery(new Term("externalId", externalId));
@@ -108,7 +108,7 @@ public class Idx {
         ScoreDoc[] hits = collector.topDocs().scoreDocs;
 
         if (hits.length < 1) {
-            return null;
+            throw new Exception("External id not found.");
         } else {
             return hits[0].doc;
         }

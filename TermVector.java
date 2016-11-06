@@ -121,7 +121,7 @@ public class TermVector {
      */
     public int indexOfStem (String stem) {
 
-        for (int s=1; s<this.stems.length; s++)
+        for (int s=1; s < this.stems.length; s++)
             if (stem.equals (this.stems [s]))
                 return s;
 

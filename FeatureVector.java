@@ -82,4 +82,80 @@ public class FeatureVector {
             maxFV.set(i, val);
         }
     }
+
+    // f1
+    public static Double spamScore(int docid) throws IOException {
+        return Double.parseDouble(Idx.getAttribute("score", docid));
+    }
+
+    // f2
+    public static Double urlDepth(int docid) throws IOException {
+        String rawUrl = Idx.getAttribute ("rawUrl", docid);
+
+        // remove prefix protocal
+        rawUrl = rawUrl.split("://")[1];
+
+        double cnt = 0.0;
+        for (int i = 0; i < rawUrl.length(); i++) {
+            if (rawUrl.charAt(i) == '/') {
+                cnt += 1.0;
+            }
+        }
+
+        return cnt;
+    }
+
+    // f3
+    public static Double fromWikiScore(int docid) throws IOException {
+        String rawUrl = Idx.getAttribute ("rawUrl", docid);
+
+        int d = rawUrl.indexOf("wikipedia.org");
+
+        if (d >= 0) {
+            return 1.0;
+        } else {
+            return 0.0;
+        }
+    }
+
+    // f4
+    public static Double pr(Map<String, Double> pageRank, String extDocid) {
+        return pageRank.getOrDefault(extDocid, Double.NaN);
+    }
+
+    // f5
+    public static Double bm25(TermVector tv, String[] qryStems)
+        throws IOException {
+        double score = 0.0;
+
+        double k1 = 1.2;
+        double b = 0.75;
+        // double k3 = 0.0;
+        double nDocs = (double) Idx.getNumDocs();
+        double doclen = (double) tv.positionsLength();
+        double avgDoclen =
+            ((double) Idx.getSumOfFieldLengths(tv.fieldName) /
+             (double) Idx.getDocCount(tv.fieldName));
+
+        if (doclen == 0.0) {
+            return Double.NaN;
+        }
+
+        for (String qryStem: qryStems) {
+            int stemIdx = tv.indexOfStem(qryStem);
+            if (stemIdx > 0) {
+                double df = (double) tv.stemDf(stemIdx);
+                double tf = (double) tv.stemFreq(stemIdx);
+
+                double rjs = Math.max(0, Math.log((nDocs - df + 0.5) /
+                                                  (df + 0.5)));
+                double tfTerm = tf / (tf + k1 * ((1 - b) + b * doclen / avgDoclen));
+
+                score += rjs * tfTerm;
+
+            }
+        }
+
+        return score;
+    }
 }

@@ -510,27 +510,60 @@ public class QryEval {
 
         Set<Integer> ignoreFeatures = new HashSet<Integer>();
 
+        String[] qryStems = QryParser.tokenizeString(qryStr);
+
         FeatureVector minFV = new FeatureVector(-1, "minFV", "minFV");
         FeatureVector maxFV = new FeatureVector(-1, "maxFV", "maxFV");
         List<FeatureVector> fvList = new ArrayList<FeatureVector>();
 
         for (RelJudge relJudge: relJudges) {
-            Integer docid = Idx.getInternalDocid(relJudge.extDocid);
-
-            if (docid == null)
+            int docid = -1;
+            try {
+                // extDocid might not exist
+                docid = Idx.getInternalDocid(relJudge.extDocid);
+            } catch (Exception e) {
                 continue;
+            }
 
             FeatureVector fv = new FeatureVector(relJudge.label, qid, relJudge.extDocid);
 
+            TermVector tvBody = new TermVector(docid, "body");
+            TermVector tvTitle = new TermVector(docid, "title");
+            TermVector tvUrl = new TermVector(docid, "url");
+            TermVector tvInlink = new TermVector(docid, "inlink");
+
             // f1: spamScore
             fv.setWithMinMax(
-                1, Double.parseDouble(Idx.getAttribute("score", docid)),
-                minFV, maxFV);
+                1, FeatureVector.spamScore(docid), minFV, maxFV);
+
+            // f2: Url depth (# of /)
+            fv.setWithMinMax(
+                2, FeatureVector.urlDepth(docid), minFV, maxFV);
+
+            // f3: FromWikipedia score
+            fv.setWithMinMax(
+                3, FeatureVector.fromWikiScore(docid), minFV, maxFV);
 
             // f4: pagerank
             fv.setWithMinMax(
-                4, pageRank.getOrDefault(relJudge.extDocid, Double.NaN),
+                4, FeatureVector.pr(pageRank, relJudge.extDocid),
                 minFV, maxFV);
+
+            // f5: BM25 Body
+            fv.setWithMinMax(
+                5, FeatureVector.bm25(tvBody, qryStems), minFV, maxFV);
+
+            // f5: BM25 Title
+            fv.setWithMinMax(
+                8, FeatureVector.bm25(tvTitle, qryStems), minFV, maxFV);
+
+            // f5: BM25 Url
+            fv.setWithMinMax(
+                11, FeatureVector.bm25(tvUrl, qryStems), minFV, maxFV);
+
+            // f5: BM25 Inlink
+            fv.setWithMinMax(
+                14, FeatureVector.bm25(tvInlink, qryStems), minFV, maxFV);
 
             fvList.add(fv);
         }
@@ -626,13 +659,13 @@ public class QryEval {
             new InputStreamReader(cmdProc.getInputStream()));
         String line;
         while ((line = stdoutReader.readLine()) != null) {
-            System.out.println(line);
+            // System.out.println(line);
         }
         // consume stderr and print it for debugging purposes
         BufferedReader stderrReader = new BufferedReader(
             new InputStreamReader(cmdProc.getErrorStream()));
         while ((line = stderrReader.readLine()) != null) {
-            System.out.println(line);
+            // System.out.println(line);
         }
 
         // get the return value from the executable. 0 means success, non-zero 
