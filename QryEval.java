@@ -525,7 +525,9 @@ public class QryEval {
             fv.setWithMinMax(1, Double.parseDouble(Idx.getAttribute("score", docid)), minFV, maxFV);
 
             // f4: pagerank
-            fv.setWithMinMax(4, pageRank.get(relJudge.extDocid), minFV, maxFV);
+            fv.setWithMinMax(
+                4, pageRank.getOrDefault(relJudge.extDocid, Double.NaN),
+                minFV, maxFV);
 
             fvList.add(fv);
         }
