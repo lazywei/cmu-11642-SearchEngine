@@ -167,37 +167,45 @@ public class FeatureVector {
     // f6
     public static Double indri(TermVector tv, String[] qryStems)
         throws IOException {
-        double score = 0.0;
+        double score = 1.0;
 
-        double k1 = 1.2;
-        double b = 0.75;
-        // double k3 = 0.0;
-        double nDocs = (double) Idx.getNumDocs();
-        double doclen = (double) tv.positionsLength();
-        double avgDoclen =
-            ((double) Idx.getSumOfFieldLengths(tv.fieldName) /
-             (double) Idx.getDocCount(tv.fieldName));
+        double lambda = 0.4;
+        double mu = 2500.0;
 
-        if (doclen == 0.0) {
+        double lenD = (double) tv.positionsLength();
+        double lenC = (double) Idx.getSumOfFieldLengths(tv.fieldName);
+
+
+        if (lenD == 0.0) {
             return Double.NaN;
         }
 
+        boolean hasAnyMatch = false;
+
+        double geoMeanPow = 1.0 / (double) qryStems.length;
+
         for (String qryStem: qryStems) {
+            double ctf = (double) Idx.getTotalTermFreq(tv.fieldName, qryStem);
+            double tf = 0.0;
+
             int stemIdx = tv.indexOfStem(qryStem);
-            if (stemIdx > 0) {
-                double df = (double) tv.stemDf(stemIdx);
-                double tf = (double) tv.stemFreq(stemIdx);
-
-                double rjs = Math.max(0, Math.log((nDocs - df + 0.5) /
-                                                  (df + 0.5)));
-                double tfTerm = tf / (tf + k1 * ((1 - b) + b * doclen / avgDoclen));
-
-                score += rjs * tfTerm;
-
+            if (stemIdx >= 0) {
+                hasAnyMatch = true;
+                tf = (double) tv.stemFreq(stemIdx);
             }
+
+            double pMLE = (double) ctf / lenC;
+            double smoothed = ((double) tf + mu * pMLE) / (lenD + mu);
+            score *= Math.pow(
+                (1 - lambda) * smoothed + lambda*pMLE,
+                geoMeanPow);
         }
 
-        return score;
+        if (hasAnyMatch) {
+            return score;
+        } else {
+            return 0.0;
+        }
     }
 
     // f7
