@@ -158,4 +158,27 @@ public class FeatureVector {
 
         return score;
     }
+
+    // f7
+    public static Double overlap(TermVector tv, String[] qryStems)
+        throws IOException {
+        double match = 0.0;
+        double total = 0.0;
+
+        double doclen = (double) tv.positionsLength();
+
+        if (doclen == 0.0) {
+            return Double.NaN;
+        }
+
+        for (String qryStem: qryStems) {
+            int stemIdx = tv.indexOfStem(qryStem);
+            if (stemIdx > 0) {
+                match += 1.0;
+            }
+            total += 1.0;
+        }
+
+        return match / total;
+    }
 }

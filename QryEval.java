@@ -551,19 +551,40 @@ public class QryEval {
 
             // f5: BM25 Body
             fv.setWithMinMax(
-                5, FeatureVector.bm25(tvBody, qryStems), minFV, maxFV);
+                5, FeatureVector.bm25(tvBody, qryStems),
+                minFV, maxFV);
 
-            // f5: BM25 Title
+            // f7: Overlap Body
+            fv.setWithMinMax(
+                7, FeatureVector.overlap(tvBody, qryStems),
+                minFV, maxFV);
+
+            // f8: BM25 Title
             fv.setWithMinMax(
                 8, FeatureVector.bm25(tvTitle, qryStems), minFV, maxFV);
 
-            // f5: BM25 Url
+            // f10: Overlap Title
+            fv.setWithMinMax(
+                10, FeatureVector.overlap(tvTitle, qryStems),
+                minFV, maxFV);
+
+            // f11: BM25 Url
             fv.setWithMinMax(
                 11, FeatureVector.bm25(tvUrl, qryStems), minFV, maxFV);
 
-            // f5: BM25 Inlink
+            // f13: Overlap Url
+            fv.setWithMinMax(
+                13, FeatureVector.overlap(tvUrl, qryStems),
+                minFV, maxFV);
+
+            // f14: BM25 Inlink
             fv.setWithMinMax(
                 14, FeatureVector.bm25(tvInlink, qryStems), minFV, maxFV);
+
+            // f16: Overlap Inlink
+            fv.setWithMinMax(
+                16, FeatureVector.overlap(tvInlink, qryStems),
+                minFV, maxFV);
 
             fvList.add(fv);
         }
