@@ -1,0 +1,6 @@
+indexPath=INPUT_DIR/index
+queryFilePath=TEST_DIR/HW4-sdm.qry
+trecEvalOutputPath=OUTPUT_DIR/HW4-Exp1-3.teIn
+retrievalAlgorithm=indri
+Indri:mu=2500
+Indri:lambda=0.4
