@@ -5,7 +5,7 @@ import re
 import sys
 import os
 
-HWID = "HW3"
+HWID = "HW4"
 url = "http://boston.lti.cs.cmu.edu/classes/11-642/HW/HTS/tes.cgi"
 
 teInPath = sys.argv[1]

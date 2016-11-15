@@ -99,10 +99,10 @@ public class QryEval {
             }
 
             outputWriter.close();
-        }
 
-        // Call SVM
-        exeSVM(true);
+            // Call SVM
+            exeSVM(true);
+        }
 
         // Perform experiments.
         processQueryFile(model);
@@ -616,6 +616,16 @@ public class QryEval {
             // f16: Overlap Inlink
             fv.setWithMinMax(
                 16, FeatureVector.overlap(tvInlink, qryStems),
+                minFV, maxFV, ignoreFeatures);
+
+            // f17: Overlap Inlink
+            fv.setWithMinMax(
+                17, FeatureVector.nDots(docid),
+                minFV, maxFV, ignoreFeatures);
+
+            // f18: Overlap Inlink
+            fv.setWithMinMax(
+                18, FeatureVector.tfIdf(tvBody, qryStems),
                 minFV, maxFV, ignoreFeatures);
 
             fvList.add(fv);

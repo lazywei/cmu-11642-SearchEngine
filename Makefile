@@ -32,6 +32,14 @@ run_train: all
 inspect: all
 	java $(CLASS_FLAG) InspectIndex -index INPUT_DIR/index -list-stats
 
+exp1: all
+	java $(CLASS_FLAG) QryEval params/$(HW_N)/$(HW_N)-Exp1-1.param && \
+	java $(CLASS_FLAG) QryEval params/$(HW_N)/$(HW_N)-Exp1-2.param && \
+	java $(CLASS_FLAG) QryEval params/$(HW_N)/$(HW_N)-Exp1-3.param
+
+exp4: all
+	java $(CLASS_FLAG) QryEval params/$(HW_N)/$(HW_N)-Exp4-3.param && \
+	java $(CLASS_FLAG) QryEval params/$(HW_N)/$(HW_N)-Exp4-4.param
 
 clean:
 	rm -f *.class ./tests/*.class

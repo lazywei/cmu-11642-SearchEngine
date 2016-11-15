@@ -230,4 +230,47 @@ public class FeatureVector {
 
         return match / total;
     }
+
+    // f17
+    public static Double nDots(int docid) throws IOException {
+        String rawUrl = Idx.getAttribute ("rawUrl", docid);
+
+        // remove prefix protocal
+        rawUrl = rawUrl.split("://")[1];
+
+        double cnt = 0.0;
+        for (int i = 0; i < rawUrl.length(); i++) {
+            if (rawUrl.charAt(i) == '.') {
+                cnt += 1.0;
+            }
+        }
+
+        return cnt;
+    }
+
+    // f18
+    public static Double tfIdf(TermVector tv, String[] qryStems)
+        throws IOException {
+        double score = 0.0;
+
+        double doclen = (double) tv.positionsLength();
+
+        if (doclen == 0.0) {
+            return Double.NaN;
+        }
+
+        for (String qryStem: qryStems) {
+            int stemIdx = tv.indexOfStem(qryStem);
+            if (stemIdx > 0) {
+                double df = (double) tv.stemDf(stemIdx);
+                double tf = (double) tv.stemFreq(stemIdx);
+
+                double tfIdf = -Math.log(df+1) + Math.log(tf+1);
+
+                score += tfIdf;
+            }
+        }
+
+        return score;
+    }
 }
