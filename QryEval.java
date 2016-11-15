@@ -36,6 +36,7 @@ public class QryEval {
     private static Map<String, String> parameters;
     private static Boolean isLetor = false;
     private static Boolean doExpand = false;
+    private static Boolean doDivsf = false;
     private static Map<String, Double> pageRank = null;
 
     //  --------------- Methods ---------------------------------------
@@ -65,6 +66,7 @@ public class QryEval {
         initParameters(args[0]);
         isLetor = parameters.get("retrievalAlgorithm").equals("letor");
         doExpand = Boolean.parseBoolean(parameters.getOrDefault("fb", "false"));
+        doDivsf = Boolean.parseBoolean(parameters.getOrDefault("diversity", "false"));
 
         //  Open the index and initialize the retrieval model.
 
@@ -263,6 +265,14 @@ public class QryEval {
         String fbExpansionQueryFile = "";
         BufferedWriter outputQry = null;
 
+        // Deal with Diversity parameters
+        int dvMaxInputRankingsLength = 0;
+        int dvMaxResultRankingLength = 0;
+        double dvLambda = 0.0;
+        String dvInitialRankingFile = "";
+        String dvAlgorithm = "";
+        String dvIntentsFile = "";
+
         if (doExpand) {
             fbDocs = Integer.parseInt(parameters.get("fbDocs"));
             fbTerms = Integer.parseInt(parameters.get("fbTerms"));
@@ -270,6 +280,15 @@ public class QryEval {
             fbOrigWeight = Double.parseDouble(parameters.get("fbOrigWeight"));
             fbInitialRankingFile = parameters.get("fbInitialRankingFile");
             fbExpansionQueryFile = parameters.get("fbExpansionQueryFile");
+        }
+
+        if (doDivsf) {
+            dvMaxInputRankingsLength = Integer.parseInt(parameters.get("diversity:maxInputRankingsLength"));
+            dvMaxResultRankingsLength = Integer.parseInt(parameters.get("diversity:maxResultRankingsLength"));
+            dvLambda = Double.parseDouble(parameters.get("diversity:lambda"));
+            dvInitialRankingFile = parameters.get("diversity:initialRankingFile");
+            dvAlgorithm = parameters.get("diversity:algorithm");
+            dvIntentsFile = parameters.get("diversity:intentsFile");
         }
 
         // Begin processing
@@ -328,6 +347,17 @@ public class QryEval {
                     r.truncate(100);
 
                     outputExpandedQuery(outputQry, qid, expandedQuery);
+                } else if (doDivsf) {
+
+                    if (prerankedScoreLists != null) {
+                        r = prerankedScoreLists.get(qid);
+                    } else {
+                        r = processQuery(query, model);
+                    }
+
+                    // Do the work!!
+
+
                 } else {
                     r = processQuery(query, model);
                     r.sort();

@@ -1,5 +1,5 @@
 # Adjust these parameters for each homework
-HW_N=HW4
+HW_N=HW5
 HANDIN_FILES=*.java
 REPORT_FILE=./reports/$(HW_N)/cchang3-$(HW_N)-Report.pdf
 ZIP_FILE=handin_$(HW_N).zip
