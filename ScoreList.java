@@ -33,7 +33,7 @@ public class ScoreList {
     /**
      *  A list of document ids and scores. 
      */
-    private List<ScoreListEntry> scores = new ArrayList<ScoreListEntry>();
+    private ArrayList<ScoreListEntry> scores = new ArrayList<ScoreListEntry>();
 
     /**
      *  Append a document score to a score list.
@@ -118,10 +118,65 @@ public class ScoreList {
      * @param num Number of results to keep.
      */
     public void truncate(int num) {
-        List<ScoreListEntry> truncated = new ArrayList<ScoreListEntry>(
+        ArrayList<ScoreListEntry> truncated = new ArrayList<ScoreListEntry>(
             this.scores.subList(0, Math.min(num, scores.size())));
 
         this.scores.clear();
         this.scores = truncated;
     }
+
+    // do this after truncate
+    public Double getSumScore(HashMap<Integer, Double> origRHash) {
+        double sum = 0.0;
+        for (ScoreListEntry sEntry: this.scores) {
+            if (origRHash != null && !origRHash.containsKey(sEntry.docid))
+                continue;
+            else
+                sum += sEntry.score;
+        }
+
+        return sum;
+    }
+
+    public void normalize(double maxSum) {
+        for (ScoreListEntry sEntry: this.scores) {
+            sEntry.score = sEntry.score / maxSum;
+        }
+    }
+
+    // do this after truncate
+    public static void normalize(ScoreList origR, ArrayList<ScoreList> intentsR) {
+        HashMap<Integer, Double> origRHash = origR.toHashMap();
+        double maxSum = origR.getSumScore(null);
+        for (ScoreList sl : intentsR) {
+            maxSum = Math.max(maxSum, sl.getSumScore(origRHash));
+        }
+
+        for (ScoreList sl : intentsR) {
+            sl.normalize(maxSum);
+        }
+        origR.normalize(maxSum);
+    }
+
+    public HashMap<Integer, Double> toHashMap() {
+        HashMap<Integer, Double> scoreMap = new HashMap<Integer, Double>();
+
+        for (ScoreListEntry sEntry: this.scores) {
+            scoreMap.put(sEntry.docid, sEntry.score);
+        }
+
+        return scoreMap;
+    }
+
+    // public void truncateByOrigRanking(ScoreList origR) {
+    //     HashMap<Integer, Double> origRHash = origR.toHashMap();
+    //     ArrayList<ScoreListEntry> oldScores = this.scores;
+    //     this.scores = new ArrayList<ScoreListEntry>();
+
+    //     for (int i = 0; i < oldScores.size(); i++) {
+    //         if (origRHash.containsKey(oldScores.get(i).docid)) {
+    //             this.scores.add(oldScores.get(i));
+    //         }
+    //     }
+    // }
 }

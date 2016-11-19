@@ -284,7 +284,7 @@ public class QryEval {
 
         if (doDivsf) {
             dvMaxInputRankingsLength = Integer.parseInt(parameters.get("diversity:maxInputRankingsLength"));
-            dvMaxResultRankingsLength = Integer.parseInt(parameters.get("diversity:maxResultRankingsLength"));
+            dvMaxResultRankingLength = Integer.parseInt(parameters.get("diversity:maxResultRankingLength"));
             dvLambda = Double.parseDouble(parameters.get("diversity:lambda"));
             dvInitialRankingFile = parameters.get("diversity:initialRankingFile");
             dvAlgorithm = parameters.get("diversity:algorithm");
@@ -302,6 +302,15 @@ public class QryEval {
             if (doExpand) {
                 outputQry = new BufferedWriter(new FileWriter(fbExpansionQueryFile));
                 if (fbInitialRankingFile != null) {
+                    prerankedScoreLists = loadRanking(fbInitialRankingFile);
+                }
+            }
+
+            HashMap<String, ArrayList<String>> intentsQueries = null;
+            if (doDivsf) {
+                intentsQueries = loadIntents(dvIntentsFile);
+
+                if (dvInitialRankingFile != null) {
                     prerankedScoreLists = loadRanking(fbInitialRankingFile);
                 }
             }
@@ -353,10 +362,29 @@ public class QryEval {
                         r = prerankedScoreLists.get(qid);
                     } else {
                         r = processQuery(query, model);
+                        r.sort();
+                        r.truncate(dvMaxInputRankingsLength);
                     }
 
                     // Do the work!!
 
+                    ArrayList<ScoreList> intentsRanking = new ArrayList<ScoreList>();
+
+                    for (String intentQuery: intentsQueries.get(qid)) {
+                        intentsRanking.add(processQuery(intentQuery, model));
+                        intentsRanking.get(intentsRanking.size()-1).sort();
+                        intentsRanking.get(intentsRanking.size()-1).truncate(dvMaxInputRankingsLength);
+                    }
+
+                    if (parameters.get("retrievalAlgorithm").toLowerCase().equals("bm25")) {
+                        ScoreList.normalize(r, intentsRanking);
+                    }
+
+                    if (dvAlgorithm.toLowerCase().equals("xquad")) {
+                        r = dvXqRerank(r, intentsRanking, dvMaxResultRankingLength, dvLambda);
+                    } else {
+                        r = dvPM25Rerank(r, intentsRanking, dvMaxResultRankingLength, dvLambda);
+                    }
 
                 } else {
                     r = processQuery(query, model);
@@ -393,6 +421,166 @@ public class QryEval {
             if (outputQry != null)
                 outputQry.close();
         }
+    }
+
+    static ScoreList dvXqRerank(ScoreList origR, ArrayList<ScoreList> intentsRanking, int resultLenth, double lambda) {
+        HashMap<Integer, Double> dvR = new HashMap<Integer, Double>();
+
+        ScoreList newR = new ScoreList();
+
+        double intentsWeight = 1.0 / ((double) intentsRanking.size());
+
+        ArrayList<HashMap<Integer, Double>> irScores =
+            new ArrayList<HashMap<Integer, Double>>();
+
+        for (ScoreList ir: intentsRanking) {
+            irScores.add(ir.toHashMap());
+        }
+
+        for (int k = 0; k < resultLenth; k++) {
+            double maxDvScore = -1.0;
+            int maxScoreDocid = -1;
+
+            for (int i = 0; i < origR.size(); i++) {
+                int docid = origR.getDocid(i);
+
+                if (dvR.containsKey(docid))
+                    continue;
+
+                double dvScore = 0.0;
+
+                for (HashMap<Integer, Double> ir: irScores) {
+                    double tmp = intentsWeight * ir.getOrDefault(docid, 0.0);
+
+                    // might be wrong
+                    for (Map.Entry<Integer, Double> entry: dvR.entrySet()) {
+                        tmp *= 1.0 - ir.getOrDefault(entry.getKey(), 0.0);
+                    }
+
+                    dvScore += tmp;
+                }
+
+                dvScore = (1.0-lambda) * (origR.getDocidScore(i)) + lambda * dvScore;
+
+                if (dvScore > maxDvScore) {
+                    maxDvScore = dvScore;
+                    maxScoreDocid = docid;
+                }
+            }
+
+            dvR.put(maxScoreDocid, maxDvScore);
+            newR.add(maxScoreDocid, maxDvScore);
+        }
+
+        // newR.sort();
+
+        return newR;
+    }
+
+    static ScoreList dvPM25Rerank(ScoreList origR, ArrayList<ScoreList> intentsRanking, int resultLenth, double lambda) {
+        HashMap<Integer, Double> dvR = new HashMap<Integer, Double>();
+
+        ScoreList newR = new ScoreList();
+
+        ArrayList<Double> votes = new ArrayList<Double>();
+        ArrayList<Double> slots = new ArrayList<Double>();
+        ArrayList<Double> qt = new ArrayList<Double>();
+        ArrayList<HashMap<Integer, Double>> irScores =
+            new ArrayList<HashMap<Integer, Double>>();
+
+        for (int i = 0; i < intentsRanking.size(); i++) {
+            votes.add(((double) resultLenth) / ((double) intentsRanking.size()));
+            slots.add(0.0);
+            qt.add(0.0);
+            irScores.add(intentsRanking.get(i).toHashMap());
+        }
+
+        for (int k = 0; k < resultLenth; k++) {
+
+            double maxQt = -1.0;
+            int maxQtIntentIdx = -1;
+            for (int i = 0; i < intentsRanking.size(); i++) {
+                qt.set(i, votes.get(i) / (2.0 * slots.get(i) + 1.0));
+
+                if (qt.get(i) > maxQt) {
+                    maxQt = qt.get(i);
+                    maxQtIntentIdx = i;
+                }
+            }
+
+            double maxDvScore = -1.0;
+            int maxScoreDocid = -1;
+
+            for (int i = 0; i < origR.size(); i++) {
+                int docid = origR.getDocid(i);
+
+                if (dvR.containsKey(docid))
+                    continue;
+
+                double dvScore = 0.0;
+
+                for (int intentIdx = 0; intentIdx < irScores.size(); intentIdx++) {
+                    if (intentIdx == maxQtIntentIdx) {
+                        dvScore += lambda *
+                            qt.get(intentIdx) *
+                            irScores.get(intentIdx).getOrDefault(docid, 0.0);
+                    } else {
+                        dvScore += (1.0 - lambda) *
+                            qt.get(intentIdx) *
+                            irScores.get(intentIdx).getOrDefault(docid, 0.0);
+                    }
+                }
+
+                if (dvScore > maxDvScore) {
+                    maxDvScore = dvScore;
+                    maxScoreDocid = docid;
+                }
+            }
+
+            Double slotUpdateSum = 0.0;
+            for (HashMap<Integer, Double> ir : irScores) {
+                slotUpdateSum += ir.getOrDefault(maxScoreDocid, 0.0);
+            }
+
+            for (int i = 0; i < slots.size(); i++) {
+                slots.set(i,
+                          slots.get(i) +
+                          irScores.get(i).getOrDefault(maxScoreDocid, 0.0) / slotUpdateSum);
+            }
+
+            dvR.put(maxScoreDocid, maxDvScore);
+            newR.add(maxScoreDocid, maxDvScore);
+        }
+
+        return newR;
+    }
+
+    static HashMap<String, ArrayList<String>> loadIntents(String intentsFile) throws Exception {
+        HashMap<String, ArrayList<String>> intents =
+            new HashMap<String, ArrayList<String>>();
+
+        BufferedReader input = new BufferedReader(new FileReader(intentsFile));
+
+        String line = null;
+
+        while ((line = input.readLine()) != null) {
+            String[] tokens = line.split(": ");
+
+            String qid = tokens[0].split("\\.")[0];
+            String queryStr = tokens[1];
+
+            ArrayList<String> ql = null;
+            if (intents.containsKey(qid)) {
+                ql = intents.get(qid);
+            } else {
+                ql = new ArrayList<String>();
+                intents.put(qid, ql);
+            }
+
+            ql.add(queryStr);
+        }
+
+        return intents;
     }
 
     /**
