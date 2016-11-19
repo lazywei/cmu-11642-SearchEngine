@@ -386,6 +386,8 @@ public class QryEval {
                         r = dvPM25Rerank(r, intentsRanking, dvMaxResultRankingLength, dvLambda);
                     }
 
+                    r.sort();
+
                 } else {
                     r = processQuery(query, model);
                     r.sort();
