@@ -64,7 +64,7 @@ public class QryEval {
         }
 
         initParameters(args[0]);
-        isLetor = parameters.get("retrievalAlgorithm").equals("letor");
+        isLetor = parameters.getOrDefault("retrievalAlgorithm", "").equals("letor");
         doExpand = Boolean.parseBoolean(parameters.getOrDefault("fb", "false"));
         doDivsf = Boolean.parseBoolean(parameters.getOrDefault("diversity", "false"));
 
@@ -72,7 +72,11 @@ public class QryEval {
 
         System.out.println(parameters);
         Idx.open (parameters.get ("indexPath"));
-        RetrievalModel model = initializeRetrievalModel();
+
+        RetrievalModel model = null;
+        if (!(doDivsf && parameters.containsKey("diversity:initialRankingFile"))) {
+            model = initializeRetrievalModel();
+        }
 
         // Extract Features
         if (isLetor) {
@@ -311,7 +315,7 @@ public class QryEval {
                 intentsQueries = loadIntents(dvIntentsFile);
 
                 if (dvInitialRankingFile != null) {
-                    prerankedScoreLists = loadRanking(fbInitialRankingFile);
+                    prerankedScoreLists = loadRanking(dvInitialRankingFile);
                 }
             }
 
@@ -362,21 +366,28 @@ public class QryEval {
                         r = prerankedScoreLists.get(qid);
                     } else {
                         r = processQuery(query, model);
-                        r.sort();
-                        r.truncate(dvMaxInputRankingsLength);
                     }
+                    r.sort();
+                    r.truncate(dvMaxInputRankingsLength);
 
                     // Do the work!!
 
                     ArrayList<ScoreList> intentsRanking = new ArrayList<ScoreList>();
 
-                    for (String intentQuery: intentsQueries.get(qid)) {
-                        intentsRanking.add(processQuery(intentQuery, model));
+                    for (int i = 0; i < intentsQueries.get(qid).size(); i++) {
+                        String intentQuery = intentsQueries.get(qid).get(i);
+                        if (prerankedScoreLists != null) {
+                            intentsRanking.add(prerankedScoreLists.get(qid+"."+(i+1)));
+                        } else {
+                            intentsRanking.add(processQuery(intentQuery, model));
+                        }
+
                         intentsRanking.get(intentsRanking.size()-1).sort();
                         intentsRanking.get(intentsRanking.size()-1).truncate(dvMaxInputRankingsLength);
                     }
 
-                    if (parameters.get("retrievalAlgorithm").toLowerCase().equals("bm25")) {
+                    if (prerankedScoreLists == null &&
+                        parameters.get("retrievalAlgorithm").toLowerCase().equals("bm25")) {
                         ScoreList.normalize(r, intentsRanking);
                     }
 
@@ -712,8 +723,9 @@ public class QryEval {
 
         if (! (parameters.containsKey ("indexPath") &&
                parameters.containsKey ("queryFilePath") &&
-               parameters.containsKey ("trecEvalOutputPath") &&
-               parameters.containsKey ("retrievalAlgorithm"))) {
+               parameters.containsKey ("trecEvalOutputPath")) ||
+            (!parameters.containsKey("diversity:initialRankingFile") &&
+                      !parameters.containsKey ("retrievalAlgorithm"))) {
             throw new IllegalArgumentException
                 ("Required parameters were missing from the parameter file.");
         }
