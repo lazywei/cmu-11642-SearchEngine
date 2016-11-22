@@ -1,0 +1,21 @@
+#!/bin/bash
+cp Exp3-BM25-PM2-8.param    Exp4-BM25-PM2-1.param
+cp Exp3-BM25-PM2-8.param    Exp4-BM25-PM2-2.param
+cp Exp3-BM25-PM2-8.param    Exp4-BM25-PM2-3.param
+cp Exp3-BM25-PM2-8.param    Exp4-BM25-PM2-4.param
+cp Exp3-BM25-PM2-8.param    Exp4-BM25-PM2-5.param
+cp Exp3-BM25-X-8.param      Exp4-BM25-X-1.param
+cp Exp3-BM25-X-8.param      Exp4-BM25-X-2.param
+cp Exp3-BM25-X-8.param      Exp4-BM25-X-3.param
+cp Exp3-BM25-X-8.param      Exp4-BM25-X-4.param
+cp Exp3-BM25-X-8.param      Exp4-BM25-X-5.param
+cp Exp3-Indri-PM2-6.param   Exp4-Indri-PM2-1.param
+cp Exp3-Indri-PM2-6.param   Exp4-Indri-PM2-2.param
+cp Exp3-Indri-PM2-6.param   Exp4-Indri-PM2-3.param
+cp Exp3-Indri-PM2-6.param   Exp4-Indri-PM2-4.param
+cp Exp3-Indri-PM2-6.param   Exp4-Indri-PM2-5.param
+cp Exp3-Indri-X-10.param     Exp4-Indri-X-1.param
+cp Exp3-Indri-X-10.param     Exp4-Indri-X-2.param
+cp Exp3-Indri-X-10.param     Exp4-Indri-X-3.param
+cp Exp3-Indri-X-10.param     Exp4-Indri-X-4.param
+cp Exp3-Indri-X-10.param     Exp4-Indri-X-5.param

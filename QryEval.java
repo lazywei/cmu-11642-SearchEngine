@@ -216,12 +216,13 @@ public class QryEval {
     }
 
     // Load ranking from file
-    static Map<String, ScoreList> loadRanking(String rankingFile)
+    static boolean loadRanking(String rankingFile,
+                               Map<String, ScoreList> scoreLists)
         throws Exception {
         BufferedReader input = new BufferedReader(new FileReader(rankingFile));
-        Map<String, ScoreList> scoreLists = new HashMap<String, ScoreList>();
 
         String rLine = null;
+        boolean hasGreaterThanOne = false;
 
         while ((rLine = input.readLine()) != null) {
             String[] tokens = rLine.split("\\s");
@@ -230,6 +231,10 @@ public class QryEval {
             String externalDocid = tokens[2];
             int docid = Idx.getInternalDocid(externalDocid);
             Double score = Double.parseDouble(tokens[4]);
+
+            if (score >= 1.0) {
+                hasGreaterThanOne = true;
+            }
 
             ScoreList sl = null;
             if (scoreLists.containsKey(qid)) {
@@ -242,7 +247,7 @@ public class QryEval {
             sl.add(docid, score);
         }
 
-        return scoreLists;
+        return hasGreaterThanOne;
     }
 
     /**
@@ -303,10 +308,12 @@ public class QryEval {
             output = new BufferedWriter(new FileWriter(outputFilePath));
 
             Map<String, ScoreList> prerankedScoreLists = null;
+            boolean normalizePreranked = false;
             if (doExpand) {
                 outputQry = new BufferedWriter(new FileWriter(fbExpansionQueryFile));
                 if (fbInitialRankingFile != null) {
-                    prerankedScoreLists = loadRanking(fbInitialRankingFile);
+                    prerankedScoreLists = new HashMap<String, ScoreList>();
+                    loadRanking(fbInitialRankingFile, prerankedScoreLists);
                 }
             }
 
@@ -315,7 +322,8 @@ public class QryEval {
                 intentsQueries = loadIntents(dvIntentsFile);
 
                 if (dvInitialRankingFile != null) {
-                    prerankedScoreLists = loadRanking(dvInitialRankingFile);
+                    prerankedScoreLists = new HashMap<String, ScoreList>();
+                    normalizePreranked = loadRanking(dvInitialRankingFile, prerankedScoreLists);
                 }
             }
 
@@ -388,6 +396,10 @@ public class QryEval {
 
                     if (prerankedScoreLists == null &&
                         parameters.get("retrievalAlgorithm").toLowerCase().equals("bm25")) {
+                        ScoreList.normalize(r, intentsRanking);
+                    }
+
+                    if (prerankedScoreLists != null && normalizePreranked) {
                         ScoreList.normalize(r, intentsRanking);
                     }
 
@@ -561,6 +573,8 @@ public class QryEval {
                           irScores.get(i).getOrDefault(maxScoreDocid, 0.0) / slotUpdateSum);
             }
 
+            if (maxScoreDocid == -1)
+                break;
             dvR.put(maxScoreDocid, maxDvScore);
             newR.add(maxScoreDocid, maxDvScore);
         }

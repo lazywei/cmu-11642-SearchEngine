@@ -1,6 +1,6 @@
 indexPath=INPUT_DIR/index
-queryFilePath=TEST_DIR/HW5-Train-10.qry
-trecEvalOutputPath=OUTPUT_DIR/HW5-Train-10.teIn
+queryFilePath=TEST_DIR/q.qry
+trecEvalOutputPath=OUTPUT_DIR/Exp3-BM25-PM2-0.teIn
 retrievalAlgorithm=BM25
 BM25:k_1=1.2
 BM25:b=0.75
@@ -8,6 +8,6 @@ BM25:k_3=0
 diversity=true
 diversity:maxInputRankingsLength=100
 diversity:maxResultRankingLength=50
-diversity:algorithm=xQuAD
+diversity:algorithm=PM2
 diversity:intentsFile=TEST_DIR/q.intents
 diversity:lambda=0.0

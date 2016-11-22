@@ -9,10 +9,10 @@ HWID = "HW5"
 url = "http://boston.lti.cs.cmu.edu/classes/11-642/HW/HTS/tes.cgi"
 
 teInPath = sys.argv[1]
-if len(sys.argv) == 3 and sys.argv[2].lower() == "-s":
-    logtype = "Summary"
-else:
+if len(sys.argv) == 3 and sys.argv[2].lower() == "-d":
     logtype = "Detailed"
+else:
+    logtype = "Summary"
 
 teInPath = os.path.realpath(
     os.path.join(

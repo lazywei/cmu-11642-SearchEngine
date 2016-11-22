@@ -1,0 +1,10 @@
+indexPath=INPUT_DIR/index
+queryFilePath=TEST_DIR/HW5-Train-21.qry
+trecEvalOutputPath=OUTPUT_DIR/HW5-Train-21.teIn
+diversity=true
+diversity:maxInputRankingsLength=200
+diversity:maxResultRankingLength=100
+diversity:algorithm=PM2
+diversity:intentsFile=TEST_DIR/HW5-Train-21.intents
+diversity:lambda=0.5
+diversity:initialRankingFile=TEST_DIR/HW5-Train-21.inRanks

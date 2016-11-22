@@ -1,0 +1,12 @@
+indexPath=INPUT_DIR/index
+queryFilePath=TEST_DIR/q.qry
+trecEvalOutputPath=OUTPUT_DIR/Exp4-Indri-X-5.teIn
+retrievalAlgorithm=Indri
+Indri:mu=2500
+Indri:lambda=0.4
+diversity=true
+diversity:maxInputRankingsLength=200
+diversity:maxResultRankingLength=100
+diversity:algorithm=xQuAD
+diversity:intentsFile=TEST_DIR/q.intents
+diversity:lambda=1.0
